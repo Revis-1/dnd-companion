@@ -7,7 +7,6 @@ import {
   SPECIES_2024,
   CLASSES_2024,
   BACKGROUNDS_2024,
-  STANDARD_ARRAY,
   calculateModifier,
   formatModifier,
 } from '@/lib/dnd/rules2024';
@@ -19,13 +18,11 @@ export default function CreateCharacterPage() {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
-  // Form State
   const [selectedSpecies, setSelectedSpecies] = useState(SPECIES_2024[0]);
   const [selectedClass, setSelectedClass] = useState(CLASSES_2024[0]);
   const [selectedBackground, setSelectedBackground] = useState(BACKGROUNDS_2024[0]);
-  const [subclass, setSubclass] = useState<string>('');
+  const [subclass] = useState<string>('');
 
-  // Stats: str, dex, con, int, wis, cha
   const [baseStats, setBaseStats] = useState({
     str: 15,
     dex: 14,
@@ -35,11 +32,9 @@ export default function CreateCharacterPage() {
     cha: 8,
   });
 
-  // Background stat bonuses (+2 to one, +1 to another from background options)
   const [statPlus2, setStatPlus2] = useState<string>('');
   const [statPlus1, setStatPlus1] = useState<string>('');
 
-  // Identity
   const [charName, setCharName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
 
@@ -54,14 +49,12 @@ export default function CreateCharacterPage() {
   }, [router]);
 
   useEffect(() => {
-    // Set default stat bonuses when background changes
     if (selectedBackground.statOptions.length >= 2) {
       setStatPlus2(selectedBackground.statOptions[0].toLowerCase());
       setStatPlus1(selectedBackground.statOptions[1].toLowerCase());
     }
   }, [selectedBackground]);
 
-  // Compute final stats with background bonuses
   const finalStats = {
     str: baseStats.str + (statPlus2 === 'str' ? 2 : 0) + (statPlus1 === 'str' ? 1 : 0),
     dex: baseStats.dex + (statPlus2 === 'dex' ? 2 : 0) + (statPlus1 === 'dex' ? 1 : 0),
@@ -71,7 +64,6 @@ export default function CreateCharacterPage() {
     cha: baseStats.cha + (statPlus2 === 'cha' ? 2 : 0) + (statPlus1 === 'cha' ? 1 : 0),
   };
 
-  // Max HP calculation for level 1 (Hit die max + Con modifier)
   const conMod = calculateModifier(finalStats.con);
   const startingHp = selectedClass.hitDie + conMod;
 
@@ -110,13 +102,13 @@ export default function CreateCharacterPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-6 space-y-6">
+    <div className="max-w-3xl w-full mx-auto py-6 space-y-6">
       {/* Wizard Step Indicator */}
-      <div className="flex items-center justify-between border-b border-zinc-700/40 pb-4">
+      <div className="flex items-center justify-between border-b border-white/10 pb-4">
         <div>
           <h2 className="text-2xl font-black text-white flex items-center space-x-2 font-fantasy">
             <Sparkles className="w-5 h-5 text-zinc-300" />
-            <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-zinc-100 to-zinc-500 bg-clip-text text-transparent">
               Tvorba postavy (D&D 2024)
             </span>
           </h2>
@@ -133,10 +125,10 @@ export default function CreateCharacterPage() {
               key={s}
               className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                 s === step
-                  ? 'bg-zinc-100 text-zinc-950 shadow-md scale-105'
+                  ? 'bg-zinc-200 text-zinc-900 shadow-md scale-105'
                   : s < step
-                  ? 'bg-zinc-800 text-zinc-300 border border-zinc-600'
-                  : 'bg-black/40 text-zinc-500 border border-zinc-700/30'
+                  ? 'bg-zinc-900/40 backdrop-blur-md text-zinc-300 border border-white/20'
+                  : 'bg-zinc-900/40 backdrop-blur-md text-zinc-500 border border-white/10'
               }`}
             >
               {s < step ? <Check className="w-3.5 h-3.5" /> : s}
@@ -158,13 +150,13 @@ export default function CreateCharacterPage() {
                 onClick={() => setSelectedSpecies(sp)}
                 className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
                   selectedSpecies.name === sp.name
-                    ? 'border-zinc-300 bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
-                    : 'border-zinc-500/20 bg-zinc-900/50 hover:border-zinc-400/40 hover:bg-zinc-800/40'
+                    ? 'border-white/40 bg-zinc-900/60 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
+                    : 'bg-zinc-900/40 border-white/10 hover:border-white/25 hover:bg-zinc-900/50'
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="font-bold text-white font-fantasy">{sp.name}</h4>
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-black/40 border border-zinc-600 text-zinc-300">
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-zinc-300">
                     {sp.speed} ft
                   </span>
                 </div>
@@ -192,8 +184,8 @@ export default function CreateCharacterPage() {
                 onClick={() => setSelectedClass(cls)}
                 className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
                   selectedClass.name === cls.name
-                    ? 'border-zinc-300 bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
-                    : 'border-zinc-500/20 bg-zinc-900/50 hover:border-zinc-400/40 hover:bg-zinc-800/40'
+                    ? 'border-white/40 bg-zinc-900/60 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
+                    : 'bg-zinc-900/40 border-white/10 hover:border-white/25 hover:bg-zinc-900/50'
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
@@ -227,8 +219,8 @@ export default function CreateCharacterPage() {
                 onClick={() => setSelectedBackground(bg)}
                 className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
                   selectedBackground.name === bg.name
-                    ? 'border-zinc-300 bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
-                    : 'border-zinc-500/20 bg-zinc-900/50 hover:border-zinc-400/40 hover:bg-zinc-800/40'
+                    ? 'border-white/40 bg-zinc-900/60 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
+                    : 'bg-zinc-900/40 border-white/10 hover:border-white/25 hover:bg-zinc-900/50'
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
@@ -262,7 +254,7 @@ export default function CreateCharacterPage() {
               const final = finalStats[s];
               const mod = calculateModifier(final);
               return (
-                <div key={s} className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-3.5 rounded-2xl text-center space-y-1">
+                <div key={s} className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-3.5 rounded-2xl text-center space-y-1 shadow-xl">
                   <span className="text-xs font-bold uppercase text-zinc-400">{s}</span>
                   <div className="text-2xl font-black text-white">{final}</div>
                   <div className="text-xs font-bold text-zinc-300">Modifikátor: {formatModifier(mod)}</div>
@@ -274,14 +266,14 @@ export default function CreateCharacterPage() {
                     onChange={(e) =>
                       setBaseStats({ ...baseStats, [s]: parseInt(e.target.value) || 10 })
                     }
-                    className="w-16 mx-auto bg-black/40 border border-zinc-600/40 rounded-lg text-center text-xs py-1 text-white focus:outline-none focus:border-zinc-400"
+                    className="w-16 mx-auto bg-white/5 border border-white/10 rounded-lg text-center text-xs py-1 text-white focus:outline-none focus:border-white/30"
                   />
                 </div>
               );
             })}
           </div>
 
-          <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-4 rounded-2xl space-y-3">
+          <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl space-y-3 shadow-xl">
             <h4 className="text-xs font-bold uppercase text-zinc-200 tracking-wider">
               Bonusy z původu ({selectedBackground.name})
             </h4>
@@ -291,7 +283,7 @@ export default function CreateCharacterPage() {
                 <select
                   value={statPlus2}
                   onChange={(e) => setStatPlus2(e.target.value)}
-                  className="w-full bg-black/40 border border-zinc-600/40 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-zinc-400"
+                  className="w-full bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-white/30"
                 >
                   {selectedBackground.statOptions.map((opt) => (
                     <option key={opt} value={opt.toLowerCase()}>{opt}</option>
@@ -303,7 +295,7 @@ export default function CreateCharacterPage() {
                 <select
                   value={statPlus1}
                   onChange={(e) => setStatPlus1(e.target.value)}
-                  className="w-full bg-black/40 border border-zinc-600/40 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-zinc-400"
+                  className="w-full bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-white/30"
                 >
                   {selectedBackground.statOptions.map((opt) => (
                     <option key={opt} value={opt.toLowerCase()}>{opt}</option>
@@ -336,7 +328,7 @@ export default function CreateCharacterPage() {
               value={charName}
               onChange={(e) => setCharName(e.target.value)}
               placeholder="např. Thorgar Železná Pěst"
-              className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-4 py-2.5 text-white font-medium focus:outline-none focus:border-zinc-400"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-medium focus:outline-none focus:border-white/30"
             />
           </div>
 
@@ -349,13 +341,13 @@ export default function CreateCharacterPage() {
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
               placeholder="https://... (odkaz na obrázek nebo nechte prázdné)"
-              className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-white/30"
             />
           </div>
 
           {/* Character summary card */}
-          <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-4 rounded-2xl flex items-center space-x-4 mt-4">
-            <div className="w-16 h-16 rounded-xl bg-white/5 border border-zinc-500/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex items-center space-x-4 mt-4 shadow-xl">
+            <div className="w-16 h-16 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -377,12 +369,12 @@ export default function CreateCharacterPage() {
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-5 border-t border-zinc-700/40">
+      <div className="flex justify-between items-center pt-5 border-t border-white/10">
         {step > 1 ? (
           <button
             type="button"
             onClick={() => setStep(step - 1)}
-            className="btn-outline-zinc flex items-center space-x-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold"
+            className="bg-zinc-900/40 backdrop-blur-md border border-white/10 text-zinc-300 hover:text-white hover:bg-zinc-900/60 hover:border-white/20 transition-all duration-300 flex items-center space-x-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Zpět</span>
@@ -395,7 +387,7 @@ export default function CreateCharacterPage() {
           <button
             type="button"
             onClick={() => setStep(step + 1)}
-            className="btn-primary-zinc flex items-center space-x-1.5 px-6 py-2.5 rounded-xl text-xs font-bold"
+            className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 flex items-center space-x-1.5 px-6 py-2.5 rounded-xl text-xs font-bold"
           >
             <span>Pokračovat</span>
             <ArrowRight className="w-4 h-4" />
@@ -405,7 +397,7 @@ export default function CreateCharacterPage() {
             type="button"
             disabled={saving || !charName.trim()}
             onClick={handleFinish}
-            className="flex items-center space-x-1.5 px-7 py-3 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-bold transition text-xs shadow-lg disabled:opacity-50"
+            className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 flex items-center space-x-1.5 px-7 py-3 rounded-xl font-bold text-xs disabled:opacity-50"
           >
             <Check className="w-4 h-4" />
             <span>{saving ? 'Ukládám...' : 'Dokončit a uložit postavu'}</span>

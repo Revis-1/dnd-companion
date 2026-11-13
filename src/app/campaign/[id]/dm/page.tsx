@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { Character, Campaign } from '@/types/database';
@@ -9,10 +9,8 @@ import { calculateModifier } from '@/lib/dnd/rules2024';
 import {
   Shield,
   Heart,
-  Eye,
   Award,
   Box,
-  BookOpen,
   Users,
   Copy,
   Check,
@@ -20,7 +18,6 @@ import {
 
 export default function DMDashboardPage() {
   const { id: campaignId } = useParams();
-  const router = useRouter();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +45,6 @@ export default function DMDashboardPage() {
 
     fetchCampaignData();
 
-    // Realtime subscription for character updates (HP, AC, conditions)
     const channel = supabase
       .channel(`dm-party-${campaignId}`)
       .on(
@@ -105,16 +101,16 @@ export default function DMDashboardPage() {
   }
 
   return (
-    <div className="py-6 space-y-8 max-w-5xl mx-auto">
+    <div className="py-6 space-y-8 max-w-5xl w-full mx-auto">
       {/* Top Header */}
-      <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+      <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xl">
         <div>
           <div className="flex items-center space-x-2 text-xs font-bold uppercase text-zinc-300">
             <Users className="w-4 h-4 text-zinc-400" />
             <span>Panel Pána jeskyně (DM Live)</span>
           </div>
           <h1 className="text-3xl font-black text-white mt-1 font-fantasy">
-            <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-zinc-100 to-zinc-500 bg-clip-text text-transparent">
               {campaign ? campaign.name : 'D&D Kampaň'}
             </span>
           </h1>
@@ -127,7 +123,7 @@ export default function DMDashboardPage() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleCopyInvite}
-            className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-zinc-600/40 text-zinc-200 text-xs px-3.5 py-2 rounded-xl transition"
+            className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 text-xs px-3.5 py-2 rounded-xl transition"
           >
             {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-zinc-400" />}
             <span>{copiedLink ? 'Zkopírováno!' : 'Zvací odkaz pro hráče'}</span>
@@ -135,7 +131,7 @@ export default function DMDashboardPage() {
 
           <Link
             href={`/campaign/${campaignId}/loot`}
-            className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-zinc-600/40 text-zinc-200 text-xs px-3.5 py-2 rounded-xl transition"
+            className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 text-xs px-3.5 py-2 rounded-xl transition"
           >
             <Box className="w-4 h-4 text-zinc-400" />
             <span>Společná truhla</span>
@@ -144,7 +140,7 @@ export default function DMDashboardPage() {
       </div>
 
       {/* DM Controls: XP & Milestones */}
-      <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-md">
+      <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-2xl">
         <div className="flex items-center space-x-2 text-xs">
           <Award className="w-4 h-4 text-zinc-300" />
           <span className="text-zinc-300 font-semibold">Udělit družině XP:</span>
@@ -154,11 +150,11 @@ export default function DMDashboardPage() {
             step="50"
             value={xpToAward}
             onChange={(e) => setXpToAward(parseInt(e.target.value) || 0)}
-            className="w-20 bg-black/40 border border-zinc-600/40 rounded-lg text-center py-1 text-white font-bold focus:outline-none focus:border-zinc-400"
+            className="w-20 bg-white/5 border border-white/10 rounded-lg text-center py-1 text-white font-bold focus:outline-none focus:border-white/30"
           />
           <button
             onClick={handleAwardXp}
-            className="btn-outline-zinc px-3 py-1 rounded-lg font-bold"
+            className="bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white px-3 py-1 rounded-lg font-bold transition"
           >
             Rozdělit XP
           </button>
@@ -166,7 +162,7 @@ export default function DMDashboardPage() {
 
         <button
           onClick={handleMilestoneLevelUp}
-          className="btn-primary-zinc text-xs px-4 py-2 rounded-xl"
+          className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 font-bold text-xs px-4 py-2 rounded-xl"
         >
           Milestone: Zvýšit úroveň celé družině (+1 Level)
         </button>
@@ -179,9 +175,9 @@ export default function DMDashboardPage() {
         </h2>
 
         {characters.length === 0 ? (
-          <div className="p-12 text-center text-zinc-500 bg-zinc-900/30 rounded-2xl border border-dashed border-zinc-600/40 space-y-2">
+          <div className="p-12 text-center text-zinc-400 bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-white/10 space-y-2 shadow-2xl">
             <p>V této kampani zatím nejsou žádné postavy.</p>
-            <p className="text-xs">
+            <p className="text-xs text-zinc-500">
               Pošlete hráčům zvací odkaz výše a jejich postavy se zde ihned zobrazí!
             </p>
           </div>
@@ -197,11 +193,11 @@ export default function DMDashboardPage() {
               return (
                 <div
                   key={char.id}
-                  className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 hover:border-zinc-400/40 rounded-2xl p-5 space-y-3 shadow-md transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,255,255,0.07)]"
+                  className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20"
                 >
                   {/* Top info */}
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-zinc-500/20 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0">
                       {char.avatar_url ? (
                         <img src={char.avatar_url} alt={char.name} className="w-full h-full object-cover" />
                       ) : (
@@ -211,7 +207,7 @@ export default function DMDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h3 className="font-bold text-white truncate text-sm font-fantasy">{char.name}</h3>
-                        <span className="text-[10px] bg-white/10 text-zinc-200 border border-zinc-600 font-bold px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] bg-white/10 text-zinc-200 border border-white/10 font-bold px-1.5 py-0.5 rounded">
                           Lvl {char.level}
                         </span>
                       </div>
@@ -231,7 +227,7 @@ export default function DMDashboardPage() {
                       </span>
                       <span className="text-zinc-400 text-[10px]">{Math.round(hpPercent)}%</span>
                     </div>
-                    <div className="w-full bg-black/40 rounded-full h-2.5 overflow-hidden border border-zinc-700/40">
+                    <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden border border-white/10">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ${
                           hpPercent > 50
@@ -246,12 +242,12 @@ export default function DMDashboardPage() {
                   </div>
 
                   {/* Key Stats: AC & Passive Perception */}
-                  <div className="grid grid-cols-2 gap-2 text-center text-xs pt-1 border-t border-zinc-700/30">
-                    <div className="bg-black/30 p-2 rounded-xl border border-zinc-700/30">
+                  <div className="grid grid-cols-2 gap-2 text-center text-xs pt-1 border-t border-white/10">
+                    <div className="bg-white/5 p-2 rounded-xl border border-white/10">
                       <span className="text-[10px] text-zinc-400 block">Zbroj (AC)</span>
                       <span className="font-bold text-white text-sm">{armorClass}</span>
                     </div>
-                    <div className="bg-black/30 p-2 rounded-xl border border-zinc-700/30">
+                    <div className="bg-white/5 p-2 rounded-xl border border-white/10">
                       <span className="text-[10px] text-zinc-400 block">Vnímání</span>
                       <span className="font-bold text-zinc-200 text-sm">{passivePerception}</span>
                     </div>

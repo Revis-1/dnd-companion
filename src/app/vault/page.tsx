@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Character } from '@/types/database';
-import { Shield, Plus, Heart, Sparkles, User, ArrowRight, UserPlus, Copy, Check, X } from 'lucide-react';
+import { Shield, Plus, Heart, Sparkles, ArrowRight, UserPlus, Copy, Check, X } from 'lucide-react';
 
 export default function VaultPage() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function VaultPage() {
   }, [router]);
 
   const fetchCharacters = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('characters')
       .select('*')
       .eq('user_id', userId)
@@ -47,12 +47,12 @@ export default function VaultPage() {
   };
 
   return (
-    <div className="py-6 space-y-8">
+    <div className="py-6 space-y-8 w-full">
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
         <div>
           <h2 className="text-3xl font-black text-white flex items-center space-x-2 font-fantasy">
-            <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-zinc-100 to-zinc-500 bg-clip-text text-transparent">
               Trezor postav
             </span>
           </h2>
@@ -65,7 +65,7 @@ export default function VaultPage() {
           {/* Tlačítko na pozvání kamaráda */}
           <button
             onClick={() => setShowInviteModal(true)}
-            className="btn-outline-zinc px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2"
+            className="bg-zinc-900/40 backdrop-blur-md border border-white/10 text-zinc-300 hover:text-white hover:bg-zinc-900/60 hover:border-white/20 transition-all duration-300 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2"
           >
             <UserPlus className="w-4 h-4 text-zinc-300" />
             <span>Pozvat hráče</span>
@@ -73,21 +73,21 @@ export default function VaultPage() {
 
           <Link
             href="/create"
-            className="btn-primary-zinc px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2"
+            className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2"
           >
-            <Plus className="w-4 h-4 text-zinc-950" />
+            <Plus className="w-4 h-4 text-zinc-900" />
             <span>Vytvořit postavu</span>
           </Link>
         </div>
       </div>
 
       {/* Neutrální oddělovací linka */}
-      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-zinc-600/40 to-transparent" />
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
       {/* Modal pro pozvání kamaráda */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-500/20 w-full max-w-md rounded-2xl p-6 space-y-5 shadow-2xl relative shadow-black/80">
+        <div className="fixed inset-0 bg-zinc-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 w-full max-w-md rounded-2xl p-6 space-y-5 shadow-2xl relative">
             <button
               onClick={() => setShowInviteModal(false)}
               className="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors"
@@ -106,13 +106,13 @@ export default function VaultPage() {
               </p>
             </div>
 
-            <div className="bg-black/50 border border-zinc-600/40 p-3 rounded-xl flex items-center justify-between text-xs space-x-2">
+            <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-3 rounded-xl flex items-center justify-between text-xs space-x-2">
               <span className="font-mono text-zinc-200 truncate text-[11px]">
                 {getInviteUrl()}
               </span>
               <button
                 onClick={handleCopyInvite}
-                className="btn-primary-zinc px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 flex-shrink-0"
+                className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 flex-shrink-0"
               >
                 {copiedInvite ? (
                   <>
@@ -128,13 +128,13 @@ export default function VaultPage() {
               </button>
             </div>
 
-            <div className="text-[11px] text-zinc-400 bg-white/5 p-3 rounded-xl border border-zinc-700/30">
+            <div className="text-[11px] text-zinc-400 bg-white/5 p-3 rounded-xl border border-white/10">
               💡 <strong>Jak to funguje:</strong> Kamarád klikne na odkaz, zadá své jméno a heslo, a je hotovo!
             </div>
 
             <button
               onClick={() => setShowInviteModal(false)}
-              className="w-full bg-white/5 hover:bg-white/10 border border-zinc-600/40 text-zinc-300 py-2.5 rounded-xl text-xs font-semibold transition"
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 py-2.5 rounded-xl text-xs font-semibold transition"
             >
               Zavřít
             </button>
@@ -145,8 +145,8 @@ export default function VaultPage() {
       {loading ? (
         <div className="text-center py-16 text-zinc-400">Načítám vaše postavy z trezoru...</div>
       ) : characters.length === 0 ? (
-        <div className="text-center py-20 bg-zinc-900/40 backdrop-blur-md border border-zinc-500/20 rounded-2xl space-y-5">
-          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-zinc-500/20 flex items-center justify-center mx-auto text-zinc-400 shadow-inner">
+        <div className="text-center py-20 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl space-y-5 shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-zinc-400 shadow-inner">
             <Shield className="w-8 h-8" />
           </div>
           <h3 className="text-xl font-bold text-zinc-200 font-fantasy">Váš trezor je zatím prázdný</h3>
@@ -156,14 +156,14 @@ export default function VaultPage() {
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
               href="/create"
-              className="btn-primary-zinc px-6 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2"
+              className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 px-6 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2"
             >
               <Sparkles className="w-4 h-4" />
               <span>Vytvořit prvního hrdinu</span>
             </Link>
             <button
               onClick={() => setShowInviteModal(true)}
-              className="btn-outline-zinc px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2"
+              className="bg-zinc-900/40 backdrop-blur-md border border-white/10 text-zinc-300 hover:text-white hover:bg-zinc-900/60 hover:border-white/20 transition-all duration-300 px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2"
             >
               <UserPlus className="w-4 h-4" />
               <span>Pozvat kamaráda</span>
@@ -175,10 +175,10 @@ export default function VaultPage() {
           {characters.map((char) => (
             <div
               key={char.id}
-              className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 hover:border-zinc-400/30 p-5 rounded-2xl flex flex-col justify-between space-y-4 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,255,255,0.07)] group"
+              className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20 group"
             >
               <div className="flex items-start space-x-3.5">
-                <div className="w-14 h-14 rounded-xl bg-white/5 border border-zinc-500/20 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-zinc-400 transition-colors">
+                <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-white/20 transition-colors">
                   {char.avatar_url ? (
                     <img src={char.avatar_url} alt={char.name} className="w-full h-full object-cover" />
                   ) : (
@@ -190,7 +190,7 @@ export default function VaultPage() {
                     <h3 className="font-bold text-white text-base group-hover:text-zinc-200 transition-colors font-fantasy">
                       {char.name}
                     </h3>
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-white/5 text-zinc-300 border border-zinc-600">
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-white/5 text-zinc-300 border border-white/10">
                       Lvl {char.level}
                     </span>
                   </div>
@@ -204,7 +204,7 @@ export default function VaultPage() {
               </div>
 
               {/* Status badges */}
-              <div className="flex items-center justify-between text-xs pt-3 border-t border-zinc-700/30">
+              <div className="flex items-center justify-between text-xs pt-3 border-t border-white/10">
                 <div className="flex items-center space-x-1.5 text-red-400 font-semibold">
                   <Heart className="w-3.5 h-3.5 fill-red-400" />
                   <span>{char.hp_current} / {char.hp_max} HP</span>
@@ -224,7 +224,7 @@ export default function VaultPage() {
 
               <Link
                 href={`/character/${char.id}`}
-                className="w-full bg-white/5 hover:bg-white/10 border border-zinc-600/40 hover:border-zinc-400 text-zinc-200 hover:text-white font-semibold text-xs py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center space-x-1.5"
+                className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-zinc-200 hover:text-white font-semibold text-xs py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center space-x-1.5"
               >
                 <span>Otevřít deník postavy</span>
                 <ArrowRight className="w-3.5 h-3.5 text-zinc-400" />

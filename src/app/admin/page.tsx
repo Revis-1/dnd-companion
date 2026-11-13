@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, usernameToEmail } from '@/lib/supabase/client';
 import { Profile, Campaign } from '@/types/database';
-import { ShieldAlert, UserPlus, KeyRound, Users, Upload, Check, AlertCircle } from 'lucide-react';
+import { ShieldAlert, UserPlus, KeyRound, Users, Check, AlertCircle } from 'lucide-react';
 
 export default function MasterAdminPage() {
   const router = useRouter();
@@ -13,13 +13,11 @@ export default function MasterAdminPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
-  // Vytvoření nového účtu adminem
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [makeAdmin, setMakeAdmin] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  // Reset hesla uživatele
   const [resetUserId, setResetUserId] = useState('');
   const [resetNewPass, setResetNewPass] = useState('');
 
@@ -108,12 +106,12 @@ export default function MasterAdminPage() {
   if (!isAdmin) return null;
 
   return (
-    <div className="py-6 space-y-8 max-w-5xl mx-auto">
-      <div className="border-b border-zinc-700/40 pb-4 flex items-center justify-between">
+    <div className="py-6 space-y-8 max-w-5xl mx-auto w-full">
+      <div className="border-b border-white/10 pb-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-white flex items-center space-x-2 font-fantasy">
             <ShieldAlert className="w-6 h-6 text-red-400" />
-            <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-zinc-100 to-zinc-500 bg-clip-text text-transparent">
               Master Admin Administrace
             </span>
           </h1>
@@ -138,7 +136,7 @@ export default function MasterAdminPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Vytvořit nový účet ručně */}
-        <form onSubmit={handleCreateUser} className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-6 rounded-2xl space-y-4 shadow-xl">
+        <form onSubmit={handleCreateUser} className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl space-y-4 shadow-2xl">
           <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 tracking-wider">
             <UserPlus className="w-4 h-4 text-zinc-300" />
             <span>Založit nový uživatelský účet</span>
@@ -152,7 +150,7 @@ export default function MasterAdminPage() {
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
                 placeholder="např. Revis nebo Honza"
-                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-white/30"
               />
             </div>
             <div>
@@ -164,7 +162,7 @@ export default function MasterAdminPage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Zadejte heslo (min. 6 znaků)"
-                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-white/30"
               />
             </div>
             <label className="flex items-center space-x-2 text-zinc-300 cursor-pointer pt-1">
@@ -172,13 +170,13 @@ export default function MasterAdminPage() {
                 type="checkbox"
                 checked={makeAdmin}
                 onChange={(e) => setMakeAdmin(e.target.checked)}
-                className="rounded bg-black/40 border-zinc-600 text-zinc-200"
+                className="rounded bg-white/5 border-white/20 text-zinc-200"
               />
               <span>Udělit práva Master Admina</span>
             </label>
             <button
               type="submit"
-              className="w-full btn-primary-zinc py-2.5 rounded-xl text-xs font-bold transition mt-2"
+              className="w-full bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 py-2.5 rounded-xl text-xs font-bold mt-2"
             >
               Vytvořit účet
             </button>
@@ -186,7 +184,7 @@ export default function MasterAdminPage() {
         </form>
 
         {/* Reset hesla uživatele */}
-        <form onSubmit={handleResetPassword} className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-6 rounded-2xl space-y-4 shadow-xl">
+        <form onSubmit={handleResetPassword} className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl space-y-4 shadow-2xl">
           <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 tracking-wider">
             <KeyRound className="w-4 h-4 text-zinc-300" />
             <span>Změna / Reset hesla hráče</span>
@@ -198,7 +196,7 @@ export default function MasterAdminPage() {
                 required
                 value={resetUserId}
                 onChange={(e) => setResetUserId(e.target.value)}
-                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-zinc-100 focus:outline-none focus:border-zinc-400"
+                className="w-full bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-xl px-3.5 py-2.5 text-zinc-100 focus:outline-none focus:border-white/30"
               >
                 <option value="">-- Vyberte účet --</option>
                 {profiles.map((p) => (
@@ -217,12 +215,12 @@ export default function MasterAdminPage() {
                 value={resetNewPass}
                 onChange={(e) => setResetNewPass(e.target.value)}
                 placeholder="Nové heslo pro hráče"
-                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-white/30"
               />
             </div>
             <button
               type="submit"
-              className="w-full btn-outline-zinc py-2.5 rounded-xl text-xs font-bold transition mt-2"
+              className="w-full bg-zinc-900/40 backdrop-blur-md border border-white/10 text-zinc-300 hover:text-white hover:bg-zinc-900/60 hover:border-white/20 transition-all duration-300 py-2.5 rounded-xl text-xs font-bold mt-2"
             >
               Nastavit nové heslo
             </button>
@@ -231,12 +229,12 @@ export default function MasterAdminPage() {
       </div>
 
       {/* Přehled všech účtů */}
-      <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-6 rounded-2xl space-y-4 shadow-xl">
+      <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl space-y-4 shadow-2xl">
         <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 tracking-wider">
           <Users className="w-4 h-4 text-zinc-300" />
           <span>Registrované účty ({profiles.length})</span>
         </h3>
-        <div className="divide-y divide-zinc-700/30 text-xs">
+        <div className="divide-y divide-white/10 text-xs">
           {profiles.map((p) => (
             <div key={p.id} className="py-3 flex items-center justify-between">
               <div>

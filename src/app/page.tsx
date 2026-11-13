@@ -9,12 +9,12 @@ export default function HomePage() {
       {/* Hlavní Hero sekce */}
       <div className="text-center max-w-2xl mx-auto space-y-6 pt-2">
         {/* Neutrální odznáček */}
-        <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-zinc-900/40 border border-white/10 text-zinc-300 text-xs font-semibold backdrop-blur-md shadow-sm uppercase tracking-wider">
+        <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-zinc-900/40 backdrop-blur-md border border-white/10 text-zinc-300 text-xs font-semibold shadow-sm uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
           <span>Oficiální pravidla D&D 2024</span>
         </div>
 
-        {/* Hlavní nadpis - vertikální gradient z100 -> z500 dle zadání */}
+        {/* Hlavní nadpis - striktní vertikální gradient z100 -> z500 */}
         <h1 className="text-4xl sm:text-6xl font-black tracking-wider uppercase font-fantasy drop-shadow-md leading-tight">
           <span className="bg-gradient-to-b from-zinc-100 to-zinc-500 bg-clip-text text-transparent block">
             Chytrý deník
@@ -33,7 +33,7 @@ export default function HomePage() {
           {/* Hlavní tlačítko: světle stříbrné s glow efektem */}
           <Link
             href="/vault"
-            className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all font-bold px-7 py-3.5 rounded-xl inline-flex items-center space-x-2.5 text-sm"
+            className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 font-bold px-7 py-3.5 rounded-xl inline-flex items-center space-x-2.5 text-sm"
           >
             <Scroll className="w-4 h-4 text-zinc-900" />
             <span>Otevřít Trezor postav</span>
@@ -43,7 +43,7 @@ export default function HomePage() {
           {/* Sekundární tlačítko: čistý glassmorphic outline */}
           <Link
             href="/campaigns"
-            className="bg-zinc-900/40 text-zinc-300 hover:text-white border border-white/10 hover:border-white/20 backdrop-blur-md hover:bg-zinc-900/60 transition-all font-semibold px-7 py-3.5 rounded-xl inline-flex items-center space-x-2.5 text-sm"
+            className="bg-zinc-900/40 backdrop-blur-md border border-white/10 text-zinc-300 hover:text-white hover:border-white/20 hover:bg-zinc-900/60 transition-all duration-300 font-semibold px-7 py-3.5 rounded-xl inline-flex items-center space-x-2.5 text-sm"
           >
             <Shield className="w-4 h-4 text-zinc-400" />
             <span>Spravovat Kampaně (DM)</span>
@@ -54,7 +54,7 @@ export default function HomePage() {
       {/* Glassmorphism karty s hover efekty dle zadání */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
         {/* Karta 1: Pravidla 2024 & Wizard */}
-        <div className="bg-zinc-900/30 backdrop-blur-md border border-white/10 shadow-2xl p-7 rounded-2xl space-y-4 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/40 hover:border-white/20 group">
+        <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 shadow-2xl p-7 rounded-2xl space-y-4 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20 group">
           <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:border-white/20 group-hover:bg-white/10 group-hover:text-white transition-all duration-300">
             <Feather className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
           </div>
@@ -67,7 +67,7 @@ export default function HomePage() {
         </div>
 
         {/* Karta 2: Živý deník & DM Dashboard */}
-        <div className="bg-zinc-900/30 backdrop-blur-md border border-white/10 shadow-2xl p-7 rounded-2xl space-y-4 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/40 hover:border-white/20 group">
+        <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 shadow-2xl p-7 rounded-2xl space-y-4 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20 group">
           <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:border-white/20 group-hover:bg-white/10 group-hover:text-white transition-all duration-300">
             <Users className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
           </div>
@@ -80,7 +80,7 @@ export default function HomePage() {
         </div>
 
         {/* Karta 3: Společná truhla & Kořist */}
-        <div className="bg-zinc-900/30 backdrop-blur-md border border-white/10 shadow-2xl p-7 rounded-2xl space-y-4 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/40 hover:border-white/20 group">
+        <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 shadow-2xl p-7 rounded-2xl space-y-4 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20 group">
           <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:border-white/20 group-hover:bg-white/10 group-hover:text-white transition-all duration-300">
             <Box className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
           </div>

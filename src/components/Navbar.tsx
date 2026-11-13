@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Shield, User, LogOut, Sparkles, ShieldAlert, UserPlus, Check, Scroll } from 'lucide-react';
+import { Shield, LogOut, Sparkles, ShieldAlert, UserPlus, Check, Scroll } from 'lucide-react';
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
@@ -47,8 +47,8 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full max-w-6xl mx-auto px-4 pt-3 pb-1">
-      <div className="bg-zinc-900/30 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between">
-        {/* LOGO: D&D 2024 v čisté typografii */}
+      <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between">
+        {/* LOGO: D&D 2024 */}
         <Link href="/" className="flex items-center space-x-2.5 group">
           <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg group-hover:border-white/20 transition-all duration-300">
             <Shield className="w-5 h-5 text-zinc-200 group-hover:scale-105 transition-transform duration-300" />
@@ -101,14 +101,14 @@ export default function Navbar() {
               {/* Nová postava */}
               <Link
                 href="/create"
-                className="bg-zinc-200 text-zinc-900 hover:bg-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center space-x-1.5 transition-all duration-300 hover:scale-[1.02] shadow-md"
+                className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center space-x-1.5"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Nová postava</span>
               </Link>
 
               {profile && (
-                <span className="text-[11px] text-zinc-500 hidden md:inline font-mono px-1">
+                <span className="text-[11px] text-zinc-400 hidden md:inline font-mono px-1">
                   ({profile.username})
                 </span>
               )}
@@ -124,7 +124,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="bg-zinc-200 text-zinc-900 hover:bg-white font-bold px-4 py-1.5 rounded-xl text-xs transition-all duration-300 hover:scale-[1.02] shadow-md"
+              className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 font-bold px-4 py-1.5 rounded-xl text-xs"
             >
               Přihlásit se
             </Link>

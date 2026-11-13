@@ -8,10 +8,7 @@ import { calculateModifier, formatModifier } from '@/lib/dnd/rules2024';
 import {
   Heart,
   Shield,
-  Zap,
   Moon,
-  AlertTriangle,
-  Sparkles,
   ArrowLeft,
   Skull,
 } from 'lucide-react';
@@ -27,9 +24,8 @@ export default function CharacterSheetPage() {
   useEffect(() => {
     if (!id) return;
 
-    // Initial fetch
     const fetchChar = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('characters')
         .select('*')
         .eq('id', id)
@@ -41,7 +37,6 @@ export default function CharacterSheetPage() {
 
     fetchChar();
 
-    // Setup Supabase Realtime channel for live sync!
     const channel = supabase
       .channel(`character-${id}`)
       .on(
@@ -81,7 +76,6 @@ export default function CharacterSheetPage() {
     );
   }
 
-  // HP logic: Temp HP absorbs damage first
   const handleTakeDamage = async () => {
     if (hpInput <= 0) return;
     let newTempHp = character.temp_hp;
@@ -152,9 +146,9 @@ export default function CharacterSheetPage() {
   const hpPercent = Math.min(100, Math.max(0, (character.hp_current / character.hp_max) * 100));
 
   return (
-    <div className="py-4 space-y-6 max-w-4xl mx-auto">
+    <div className="py-4 space-y-6 max-w-4xl w-full mx-auto">
       {/* Header Bar */}
-      <div className="flex items-center justify-between border-b border-zinc-700/40 pb-3">
+      <div className="flex items-center justify-between border-b border-white/10 pb-3">
         <button
           onClick={() => router.push('/vault')}
           className="flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-white transition"
@@ -166,7 +160,7 @@ export default function CharacterSheetPage() {
         <div className="flex space-x-2">
           <button
             onClick={handleLongRest}
-            className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-zinc-600/40 text-zinc-200 text-xs px-3.5 py-1.5 rounded-xl transition backdrop-blur-sm"
+            className="flex items-center space-x-1.5 bg-zinc-900/40 backdrop-blur-md hover:bg-zinc-900/60 border border-white/10 text-zinc-200 text-xs px-3.5 py-1.5 rounded-xl transition"
             title="Plně obnoví životy a schopnosti"
           >
             <Moon className="w-3.5 h-3.5 text-zinc-400" />
@@ -176,8 +170,8 @@ export default function CharacterSheetPage() {
       </div>
 
       {/* Hero Character Card */}
-      <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-xl">
-        <div className="w-24 h-24 rounded-2xl bg-white/5 border border-zinc-500/30 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg">
+      <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-2xl">
+        <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg">
           {character.avatar_url ? (
             <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
           ) : (
@@ -188,11 +182,11 @@ export default function CharacterSheetPage() {
         <div className="flex-1 text-center md:text-left space-y-2">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
             <h1 className="text-3xl font-black text-white tracking-wide font-fantasy">
-              <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-b from-zinc-100 to-zinc-500 bg-clip-text text-transparent">
                 {character.name}
               </span>
             </h1>
-            <span className="bg-white/10 border border-zinc-600 text-zinc-200 text-xs px-3 py-0.5 rounded-full font-bold">
+            <span className="bg-white/10 border border-white/10 text-zinc-200 text-xs px-3 py-0.5 rounded-full font-bold">
               Úroveň {character.level}
             </span>
           </div>
@@ -210,7 +204,7 @@ export default function CharacterSheetPage() {
       {/* HP & Combat Management Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Live HP Box */}
-        <div className="md:col-span-2 bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 rounded-2xl p-6 space-y-4 shadow-xl">
+        <div className="md:col-span-2 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-4 shadow-2xl">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-bold uppercase text-zinc-300 flex items-center space-x-1.5">
               <Heart className="w-4 h-4 text-red-500 fill-red-500" />
@@ -229,7 +223,7 @@ export default function CharacterSheetPage() {
               <span className="text-white text-lg">{character.hp_current} / {character.hp_max} HP</span>
               <span className="text-zinc-400">{Math.round(hpPercent)}%</span>
             </div>
-            <div className="w-full bg-black/50 rounded-full h-3.5 overflow-hidden border border-zinc-700/40 p-0.5">
+            <div className="w-full bg-white/5 rounded-full h-3.5 overflow-hidden border border-white/10 p-0.5">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   hpPercent > 50
@@ -250,7 +244,7 @@ export default function CharacterSheetPage() {
               min="1"
               value={hpInput}
               onChange={(e) => setHpInput(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-20 bg-black/40 border border-zinc-600/40 rounded-xl text-center py-2 text-white font-bold focus:outline-none focus:border-zinc-400"
+              className="w-20 bg-white/5 border border-white/10 rounded-xl text-center py-2 text-white font-bold focus:outline-none focus:border-white/30"
             />
             <button
               onClick={handleTakeDamage}
@@ -267,18 +261,18 @@ export default function CharacterSheetPage() {
           </div>
 
           {/* Temp HP setting */}
-          <div className="flex items-center space-x-2 pt-1 border-t border-zinc-700/30 text-xs">
+          <div className="flex items-center space-x-2 pt-1 border-t border-white/10 text-xs">
             <span className="text-zinc-400">Dočasné HP:</span>
             <input
               type="number"
               min="0"
               value={tempHpInput}
               onChange={(e) => setTempHpInput(Math.max(0, parseInt(e.target.value) || 0))}
-              className="w-16 bg-black/40 border border-zinc-600/40 rounded-lg text-center py-1 text-white focus:outline-none focus:border-zinc-400"
+              className="w-16 bg-white/5 border border-white/10 rounded-lg text-center py-1 text-white focus:outline-none focus:border-white/30"
             />
             <button
               onClick={handleSetTempHp}
-              className="bg-white/5 hover:bg-white/10 border border-zinc-600/40 text-zinc-300 px-3 py-1 rounded-lg transition"
+              className="bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 px-3 py-1 rounded-lg transition"
             >
               Nastavit Temp HP
             </button>
@@ -286,7 +280,7 @@ export default function CharacterSheetPage() {
         </div>
 
         {/* Death Saves Box */}
-        <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 rounded-2xl p-6 space-y-4 shadow-xl">
+        <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-4 shadow-2xl">
           <h3 className="text-sm font-bold uppercase text-zinc-300 flex items-center space-x-1.5">
             <Skull className="w-4 h-4 text-zinc-400" />
             <span>Záchranné hody (0 HP)</span>
@@ -304,7 +298,7 @@ export default function CharacterSheetPage() {
                     className={`w-7 h-7 rounded-xl border flex items-center justify-center text-xs font-bold ${
                       num <= character.death_saves.successes
                         ? 'bg-emerald-600 border-emerald-500 text-white'
-                        : 'border-zinc-700/50 bg-black/40 text-zinc-600'
+                        : 'border-white/10 bg-white/5 text-zinc-500'
                     }`}
                   >
                     ✓
@@ -324,7 +318,7 @@ export default function CharacterSheetPage() {
                     className={`w-7 h-7 rounded-xl border flex items-center justify-center text-xs font-bold ${
                       num <= character.death_saves.failures
                         ? 'bg-red-600 border-red-500 text-white'
-                        : 'border-zinc-700/50 bg-black/40 text-zinc-600'
+                        : 'border-white/10 bg-white/5 text-zinc-500'
                     }`}
                   >
                     ✗
@@ -359,11 +353,11 @@ export default function CharacterSheetPage() {
           return (
             <div
               key={s}
-              className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-3.5 rounded-2xl text-center space-y-1 shadow-md"
+              className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-3.5 rounded-2xl text-center space-y-1 shadow-2xl"
             >
               <span className="text-[11px] font-bold uppercase text-zinc-400">{s}</span>
               <div className="text-2xl font-black text-white">{val}</div>
-              <div className="text-xs font-bold text-zinc-200 bg-white/5 rounded-lg py-1 border border-zinc-600/40">
+              <div className="text-xs font-bold text-zinc-200 bg-white/5 rounded-lg py-1 border border-white/10">
                 {formatModifier(mod)}
               </div>
             </div>

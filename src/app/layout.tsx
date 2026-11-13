@@ -14,16 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="cs" className="dark">
-      <body className="bg-zinc-950 text-zinc-100 antialiased min-h-screen selection:bg-zinc-700 selection:text-white">
-        <div className="relative min-h-screen bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] bg-cover bg-center">
-          <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-[2px]"></div>
-          <div className="relative z-10 flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-8 flex flex-col justify-center">
-              {children}
-            </main>
-          </div>
-        </div>
+      <body className="bg-[url('/bg-map.jpg')] bg-fixed bg-cover bg-center text-zinc-300 antialiased min-h-screen relative flex flex-col selection:bg-zinc-700 selection:text-white">
+        <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-[2px] -z-10"></div>
+        <Navbar />
+        <main className="relative z-10 flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-8 flex flex-col justify-center">
+          {children}
+        </main>
       </body>
     </html>
   );
