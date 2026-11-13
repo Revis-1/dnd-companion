@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Character } from '@/types/database';
-import { Shield, Plus, Heart, Sparkles, User, ArrowRight } from 'lucide-react';
+import { Shield, Plus, Heart, Sparkles, User, ArrowRight, UserPlus, Copy, Check, X } from 'lucide-react';
 
 export default function VaultPage() {
   const router = useRouter();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,8 +35,20 @@ export default function VaultPage() {
     setLoading(false);
   };
 
+  const getInviteUrl = () => {
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/invite/hrac`;
+  };
+
+  const handleCopyInvite = () => {
+    navigator.clipboard.writeText(getInviteUrl());
+    setCopiedInvite(true);
+    setTimeout(() => setCopiedInvite(false), 2500);
+  };
+
   return (
     <div className="py-6 space-y-6">
+      {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-fantasy-border pb-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
@@ -42,18 +56,87 @@ export default function VaultPage() {
             <span>Trezor postav (Character Vault)</span>
           </h2>
           <p className="text-xs text-gray-400">
-            Správa vašich hrdinů. Postava je buď volná v trezoru, nebo vázaná na kampaň.
+            Správa vašich hrdinů. Postavy zde můžete připravovat a tvořit předem.
           </p>
         </div>
 
-        <Link
-          href="/create"
-          className="inline-flex items-center space-x-2 bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold px-4 py-2 rounded-lg transition self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Vytvořit postavu</span>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Tlačítko na pozvání kamaráda do aplikace bez nutnosti kampaně */}
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="inline-flex items-center space-x-2 bg-fantasy-card hover:bg-fantasy-border border border-fantasy-gold/50 text-fantasy-gold font-bold px-4 py-2 rounded-lg transition text-xs"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Pozvat kamaráda</span>
+          </button>
+
+          <Link
+            href="/create"
+            className="inline-flex items-center space-x-2 bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold px-4 py-2 rounded-lg transition text-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Vytvořit postavu</span>
+          </Link>
+        </div>
       </div>
+
+      {/* Modal pro pozvání kamaráda */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-fantasy-card border border-fantasy-border w-full max-w-md rounded-2xl p-6 space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setShowInviteModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1">
+              <div className="inline-flex items-center space-x-2 text-xs font-bold text-fantasy-gold uppercase">
+                <Sparkles className="w-4 h-4" />
+                <span>Pozvánka pro nového hráče</span>
+              </div>
+              <h3 className="text-xl font-bold text-white">Pozvat kamaráda do aplikace</h3>
+              <p className="text-xs text-gray-400">
+                Pošlete tento odkaz kamarádovi. Umožní mu zaregistrovat se a ihned si v Trezoru připravit své postavy, aniž byste museli zakládat kampaň.
+              </p>
+            </div>
+
+            <div className="bg-fantasy-darker border border-fantasy-border p-3 rounded-xl flex items-center justify-between text-xs space-x-2">
+              <span className="font-mono text-fantasy-gold truncate text-[11px]">
+                {getInviteUrl()}
+              </span>
+              <button
+                onClick={handleCopyInvite}
+                className="flex items-center space-x-1 bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold px-3 py-1.5 rounded-lg transition flex-shrink-0"
+              >
+                {copiedInvite ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Zkopírováno!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Kopírovat</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="text-[11px] text-gray-400 bg-fantasy-darker/60 p-3 rounded-lg border border-fantasy-border/60">
+              💡 <strong>Jak to funguje:</strong> Kamarád klikne na odkaz, zadá své jméno a heslo, a je hotovo! Může si rovnou vytvořit hrdinu podle pravidel D&D 2024.
+            </div>
+
+            <button
+              onClick={() => setShowInviteModal(false)}
+              className="w-full bg-fantasy-darker hover:bg-fantasy-border text-gray-300 py-2 rounded-lg text-xs font-semibold transition"
+            >
+              Zavřít
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-gray-400">Načítám vaše postavy z trezoru...</div>
@@ -64,13 +147,22 @@ export default function VaultPage() {
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
             Vytvořte si svou první postavu podle pravidel D&D 2024 s automatickým výpočtem statistik a původem.
           </p>
-          <Link
-            href="/create"
-            className="inline-flex items-center space-x-2 bg-fantasy-gold text-black font-bold px-5 py-2.5 rounded-lg hover:bg-fantasy-goldHover transition"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Vytvořit prvního hrdinu</span>
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link
+              href="/create"
+              className="inline-flex items-center space-x-2 bg-fantasy-gold text-black font-bold px-5 py-2.5 rounded-lg hover:bg-fantasy-goldHover transition text-xs"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Vytvořit prvního hrdinu</span>
+            </Link>
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="inline-flex items-center space-x-2 bg-fantasy-card border border-fantasy-border text-fantasy-gold font-bold px-5 py-2.5 rounded-lg hover:border-fantasy-gold transition text-xs"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Pozvat kamaráda</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

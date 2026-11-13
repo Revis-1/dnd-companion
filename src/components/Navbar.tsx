@@ -3,11 +3,19 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Shield, User, LogOut, Sparkles, ShieldAlert } from 'lucide-react';
+import { Shield, User, LogOut, Sparkles, ShieldAlert, UserPlus, Check } from 'lucide-react';
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyAppInvite = () => {
+    const url = `${window.location.origin}/invite/hrac`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const loadProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
@@ -65,6 +73,14 @@ export default function Navbar() {
                 <Shield className="w-4 h-4" />
                 <span>Kampaně</span>
               </Link>
+              <button
+                onClick={handleCopyAppInvite}
+                className="hidden sm:flex items-center space-x-1 text-fantasy-gold hover:text-fantasy-goldHover bg-fantasy-card border border-fantasy-gold/30 px-2.5 py-1 rounded-md text-xs font-semibold transition"
+                title="Zkopírovat zvací odkaz do aplikace pro kamaráda"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <UserPlus className="w-3.5 h-3.5" />}
+                <span>{copied ? 'Zkopírováno!' : 'Pozvat hráče'}</span>
+              </button>
               <Link href="/create" className="flex items-center space-x-1.5 text-fantasy-gold hover:text-fantasy-goldHover bg-fantasy-card border border-fantasy-gold/30 px-3 py-1.5 rounded-md transition font-medium">
                 <Sparkles className="w-4 h-4" />
                 <span className="hidden sm:inline">Nová postava</span>
