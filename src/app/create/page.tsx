@@ -11,6 +11,57 @@ import {
   formatModifier,
 } from '@/lib/dnd/rules2024';
 import { Sparkles, ArrowRight, ArrowLeft, Check, Shield, Heart } from 'lucide-react';
+import MagicCard from '@/components/MagicCard';
+
+// Tematické RGB barvy pro jednotlivé Rasy (Species)
+const SPECIES_GLOW: Record<string, { primary: string; secondary: string }> = {
+  Human: { primary: '244, 244, 245', secondary: '161, 161, 170' },      // Čistě stříbrno-bílá (univerzálnost)
+  Elf: { primary: '52, 211, 153', secondary: '16, 185, 129' },          // Smaragdově lesní zelená (příroda a Feywild)
+  Dwarf: { primary: '245, 158, 11', secondary: '180, 83, 9' },          // Kovářská měděno-jantarová (výhně a runy)
+  Halfling: { primary: '251, 146, 60', secondary: '234, 88, 12' },      // Teplá podzimní oranžová (štěstí a pohoda)
+  Gnome: { primary: '232, 121, 249', secondary: '168, 85, 247' },       // Magická purpurově-růžová (iluze a vynálezy)
+  Dragonborn: { primary: '239, 68, 68', secondary: '185, 28, 28' },     // Dračí karmínově rudá (dračí dech)
+  Tiefling: { primary: '244, 63, 94', secondary: '159, 18, 57' },       // Pekelná ohnivě rudá/fialová (Fiendish Legacy)
+  Orc: { primary: '220, 38, 38', secondary: '153, 27, 27' },            // Divoká krvavě rudá (Adrenaline Rush)
+  Goliath: { primary: '56, 189, 248', secondary: '14, 165, 233' },      // Ledově horská modrá (vrcholky hor a obři)
+  Aasimar: { primary: '253, 224, 71', secondary: '250, 204, 21' },      // Nebeská zářivá zlatobílá (Celestial Revelation)
+};
+
+// Tematické RGB barvy pro jednotlivá Povolání (Classes)
+const CLASS_GLOW: Record<string, { primary: string; secondary: string }> = {
+  Barbarian: { primary: '239, 68, 68', secondary: '185, 28, 28' },      // Zuřivá rudá (Rage)
+  Bard: { primary: '236, 72, 153', secondary: '168, 85, 247' },         // Melodická růžovo-fialová (hudba a šarm)
+  Cleric: { primary: '186, 230, 253', secondary: '56, 189, 248' },      // Posvátná nebeská bílo-modrá (božská záře)
+  Druid: { primary: '34, 197, 94', secondary: '21, 128, 61' },          // Přírodní listově zelená (divočina)
+  Fighter: { primary: '148, 163, 184', secondary: '100, 116, 139' },    // Chladná ocelově stříbrná (zbraně a zbroj)
+  Monk: { primary: '45, 212, 191', secondary: '13, 148, 136' },         // Chi tyrkysově azurová (duchovní energie)
+  Paladin: { primary: '251, 191, 36', secondary: '217, 119, 6' },       // Sluneční posvátná jantarová (Divine Smite)
+  Ranger: { primary: '132, 204, 22', secondary: '77, 124, 15' },        // Hraničářská mechově zelená (lov a lesy)
+  Rogue: { primary: '129, 140, 248', secondary: '79, 70, 229' },        // Stínová temně indigová (plížení a stíny)
+  Sorcerer: { primary: '217, 70, 239', secondary: '147, 51, 234' },     // Divoká magická fuchsiová (vrozená magie)
+  Warlock: { primary: '168, 85, 247', secondary: '107, 33, 168' },      // Okultní eldritch fialová (pakt s patronem)
+  Wizard: { primary: '59, 130, 246', secondary: '37, 99, 235' },        // Arkánní safírově modrá (knihy kouzel)
+};
+
+// Tematické RGB barvy pro Původy (Backgrounds)
+const BACKGROUND_GLOW: Record<string, { primary: string; secondary: string }> = {
+  Acolyte: { primary: '125, 211, 252', secondary: '56, 189, 248' },     // Chrámová nebesky modrá
+  Artisan: { primary: '249, 115, 22', secondary: '194, 65, 12' },       // Řemeslná měděno-oranžová
+  Charlatan: { primary: '192, 132, 252', secondary: '147, 51, 234' },   // Šálivá purpurová
+  Criminal: { primary: '225, 29, 72', secondary: '159, 18, 57' },       // Podsvětní šarlatová
+  Entertainer: { primary: '244, 114, 182', secondary: '219, 39, 119' }, // Jevištní růžová
+  Farmer: { primary: '163, 230, 53', secondary: '101, 163, 13' },       // Zemitá žlutozelená
+  Guard: { primary: '96, 165, 250', secondary: '37, 99, 235' },         // Strážní kobaltově modrá
+  Guide: { primary: '52, 211, 153', secondary: '5, 150, 105' },         // Stezková smaragdová
+  Hermit: { primary: '94, 234, 212', secondary: '13, 148, 136' },       // Poustevnická mlhavě tyrkysová
+  Merchant: { primary: '251, 191, 36', secondary: '180, 83, 9' },       // Obchodnická zlatavě-jantarová
+  Noble: { primary: '167, 139, 250', secondary: '109, 40, 217' },       // Královská fialová
+  Sage: { primary: '56, 189, 248', secondary: '2, 132, 199' },          // Učenecká safírově modrá
+  Sailor: { primary: '34, 211, 238', secondary: '8, 145, 178' },        // Mořská oceánově azurová
+  Scribe: { primary: '228, 228, 231', secondary: '161, 161, 170' },     // Pergamenová stříbrno-bílá
+  Soldier: { primary: '248, 113, 113', secondary: '185, 28, 28' },     // Vojenská ocelově červená
+  Wayfarer: { primary: '45, 212, 191', secondary: '14, 165, 233' },     // Tulácká větrná modro-zelená
+};
 
 export default function CreateCharacterPage() {
   const router = useRouter();
@@ -144,29 +195,31 @@ export default function CreateCharacterPage() {
             Vyberte si rasu postavy z oficiálních pravidel D&D 2024:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {SPECIES_2024.map((sp) => (
-              <div
-                key={sp.name}
-                onClick={() => setSelectedSpecies(sp)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
-                  selectedSpecies.name === sp.name
-                    ? 'border-white/40 bg-zinc-900/60 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
-                    : 'bg-zinc-900/40 border-white/10 hover:border-white/25 hover:bg-zinc-900/50'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold text-white font-fantasy">{sp.name}</h4>
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-zinc-300">
-                    {sp.speed} ft
-                  </span>
-                </div>
-                <ul className="text-xs text-zinc-400 space-y-0.5 mt-2">
-                  {sp.traits.slice(0, 2).map((t, idx) => (
-                    <li key={idx}>• {t}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            {SPECIES_2024.map((sp) => {
+              const glow = SPECIES_GLOW[sp.name] || { primary: '244, 244, 245', secondary: '161, 161, 170' };
+              return (
+                <MagicCard
+                  key={sp.name}
+                  onClick={() => setSelectedSpecies(sp)}
+                  selected={selectedSpecies.name === sp.name}
+                  glowColor={glow.primary}
+                  glowSecondaryColor={glow.secondary}
+                  className="p-4"
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-bold text-white font-fantasy">{sp.name}</h4>
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-zinc-300">
+                      {sp.speed} ft
+                    </span>
+                  </div>
+                  <ul className="text-xs text-zinc-400 space-y-0.5 mt-2">
+                    {sp.traits.slice(0, 2).map((t, idx) => (
+                      <li key={idx}>• {t}</li>
+                    ))}
+                  </ul>
+                </MagicCard>
+              );
+            })}
           </div>
         </div>
       )}
@@ -178,30 +231,32 @@ export default function CreateCharacterPage() {
             Vyberte si povolání (povolání určuje Kostku životů a klíčové vlastnosti):
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {CLASSES_2024.map((cls) => (
-              <div
-                key={cls.name}
-                onClick={() => setSelectedClass(cls)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
-                  selectedClass.name === cls.name
-                    ? 'border-white/40 bg-zinc-900/60 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
-                    : 'bg-zinc-900/40 border-white/10 hover:border-white/25 hover:bg-zinc-900/50'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold text-white font-fantasy">{cls.name}</h4>
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-red-950/40 border border-red-500/30 text-red-300">
-                    k{cls.hitDie} Hit Die
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-300">
-                  Hlavní vlastnost: <strong className="text-white">{cls.primaryStat}</strong>
-                </p>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Záchranné hody: {cls.savingThrows.join(', ')}
-                </p>
-              </div>
-            ))}
+            {CLASSES_2024.map((cls) => {
+              const glow = CLASS_GLOW[cls.name] || { primary: '59, 130, 246', secondary: '37, 99, 235' };
+              return (
+                <MagicCard
+                  key={cls.name}
+                  onClick={() => setSelectedClass(cls)}
+                  selected={selectedClass.name === cls.name}
+                  glowColor={glow.primary}
+                  glowSecondaryColor={glow.secondary}
+                  className="p-4"
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-bold text-white font-fantasy">{cls.name}</h4>
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-red-950/40 border border-red-500/30 text-red-300">
+                      k{cls.hitDie} Hit Die
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-300">
+                    Hlavní vlastnost: <strong className="text-white">{cls.primaryStat}</strong>
+                  </p>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    Záchranné hody: {cls.savingThrows.join(', ')}
+                  </p>
+                </MagicCard>
+              );
+            })}
           </div>
         </div>
       )}
@@ -212,31 +267,33 @@ export default function CreateCharacterPage() {
           <p className="text-sm text-zinc-300">
             V pravidlech 2024 definuje bonusy k vlastnostem a Origin Feat váš <strong>Původ (Background)</strong>:
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
-            {BACKGROUNDS_2024.map((bg) => (
-              <div
-                key={bg.name}
-                onClick={() => setSelectedBackground(bg)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
-                  selectedBackground.name === bg.name
-                    ? 'border-white/40 bg-zinc-900/60 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
-                    : 'bg-zinc-900/40 border-white/10 hover:border-white/25 hover:bg-zinc-900/50'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold text-white font-fantasy">{bg.name}</h4>
-                </div>
-                <p className="text-xs text-zinc-400 mb-2">{bg.description}</p>
-                <div className="text-xs space-y-1">
-                  <p className="text-zinc-200">
-                    Origin Feat: <strong className="text-white">{bg.originFeat}</strong>
-                  </p>
-                  <p className="text-zinc-400">
-                    Bonusy pro: {bg.statOptions.join(', ')}
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto py-1 px-1">
+            {BACKGROUNDS_2024.map((bg) => {
+              const glow = BACKGROUND_GLOW[bg.name] || { primary: '228, 228, 231', secondary: '161, 161, 170' };
+              return (
+                <MagicCard
+                  key={bg.name}
+                  onClick={() => setSelectedBackground(bg)}
+                  selected={selectedBackground.name === bg.name}
+                  glowColor={glow.primary}
+                  glowSecondaryColor={glow.secondary}
+                  className="p-4"
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-bold text-white font-fantasy">{bg.name}</h4>
+                  </div>
+                  <p className="text-xs text-zinc-400 mb-2">{bg.description}</p>
+                  <div className="text-xs space-y-1">
+                    <p className="text-zinc-200">
+                      Origin Feat: <strong className="text-white">{bg.originFeat}</strong>
+                    </p>
+                    <p className="text-zinc-400">
+                      Bonusy pro: {bg.statOptions.join(', ')}
+                    </p>
+                  </div>
+                </MagicCard>
+              );
+            })}
           </div>
         </div>
       )}
