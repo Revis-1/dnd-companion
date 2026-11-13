@@ -78,13 +78,14 @@ export default function CreateCharacterPage() {
   const [startingLevel, setStartingLevel] = useState<1 | 2 | 3>(1);
   const [subclass, setSubclass] = useState<string>('');
 
+  // Ve výchozím stavu (Standard Array) jsou všechny hodnoty nepřiřazené (0), aby si je hráč musel zvolit sám
   const [baseStats, setBaseStats] = useState({
-    str: 15,
-    dex: 14,
-    con: 13,
-    int: 12,
-    wis: 10,
-    cha: 8,
+    str: 0,
+    dex: 0,
+    con: 0,
+    int: 0,
+    wis: 0,
+    cha: 0,
   });
 
   const [statMethod, setStatMethod] = useState<'standard' | 'pointbuy'>('standard');
@@ -114,10 +115,9 @@ export default function CreateCharacterPage() {
   }, [selectedSpecies]);
 
   useEffect(() => {
-    if (selectedBackground.statOptions.length >= 2) {
-      setStatPlus2(selectedBackground.statOptions[0].toLowerCase());
-      setStatPlus1(selectedBackground.statOptions[1].toLowerCase());
-    }
+    // Při změně původu vyresetujeme volbu +2 a +1, aby si hráč vědomě vybral bonusy nového původu
+    setStatPlus2('');
+    setStatPlus1('');
   }, [selectedBackground]);
 
   useEffect(() => {
@@ -153,16 +153,26 @@ export default function CreateCharacterPage() {
   const handleSwitchStatMethod = (method: 'standard' | 'pointbuy') => {
     setStatMethod(method);
     if (method === 'standard') {
-      setBaseStats({ str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 });
+      // Prázdné hodnoty – hráč si přiřadí čísla 15, 14, 13, 12, 10, 8 sám
+      setBaseStats({ str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 });
     } else {
-      setBaseStats({ str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 }); // součet v Point Buy je přesně 27 bodů!
+      // Point Buy začíná se všemi vlastnostmi na 8 (k dispozici je všech 27 bodů)
+      setBaseStats({ str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 });
     }
   };
 
-  // Standard Array: při změně hodnoty automaticky prohodí hodnotu s vlastností, která ji měla doteď
+  // Standard Array: při změně hodnoty automaticky prohodí hodnotu s vlastností, která ji měla doteď (nebo uvolní 0)
   const handleStandardArraySelect = (targetStat: StatKey, newValue: number) => {
     const oldValue = baseStats[targetStat];
     if (oldValue === newValue) return;
+
+    if (newValue === 0) {
+      setBaseStats({
+        ...baseStats,
+        [targetStat]: 0,
+      });
+      return;
+    }
 
     const otherStat = STAT_KEYS.find((k) => k !== targetStat && baseStats[k] === newValue);
     if (otherStat) {
@@ -222,13 +232,20 @@ export default function CreateCharacterPage() {
   };
 
   const finalStats = {
-    str: baseStats.str + getBackgroundBonus('str'),
-    dex: baseStats.dex + getBackgroundBonus('dex'),
-    con: baseStats.con + getBackgroundBonus('con'),
-    int: baseStats.int + getBackgroundBonus('int'),
-    wis: baseStats.wis + getBackgroundBonus('wis'),
-    cha: baseStats.cha + getBackgroundBonus('cha'),
+    str: (baseStats.str || 10) + getBackgroundBonus('str'),
+    dex: (baseStats.dex || 10) + getBackgroundBonus('dex'),
+    con: (baseStats.con || 10) + getBackgroundBonus('con'),
+    int: (baseStats.int || 10) + getBackgroundBonus('int'),
+    wis: (baseStats.wis || 10) + getBackgroundBonus('wis'),
+    cha: (baseStats.cha || 10) + getBackgroundBonus('cha'),
   };
+
+  const allStandardAssigned = STAT_KEYS.every((k) => baseStats[k] > 0);
+  const isBaseStatsComplete =
+    statMethod === 'standard' ? allStandardAssigned : pointsRemaining === 0;
+  const isBgBonusComplete =
+    bgBonusMode === '1_1_1' || Boolean(statPlus2 && statPlus1 && statPlus2 !== statPlus1);
+  const isStep4Valid = isBaseStatsComplete && isBgBonusComplete;
 
   const conMod = calculateModifier(finalStats.con);
   const startingHp = calculateMaxHp(
@@ -481,54 +498,81 @@ export default function CreateCharacterPage() {
       {step === 4 && (
         <div className="space-y-5">
           {/* Přepínač metody rozdělení vlastností */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl">
-            <div>
-              <h4 className="text-xs font-bold uppercase text-zinc-200 tracking-wider font-fantasy">
-                Metoda rozdělení vlastností (D&D 2024)
-              </h4>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                {statMethod === 'standard'
-                  ? 'Každé číslo ze sady (15, 14, 13, 12, 10, 8) je použito právě jednou. Při výběru se hodnoty prohodí.'
-                  : 'Máte 27 bodů k nákupu vlastností v rozsahu 8 až 15 (před přičtením bonusů z původu).'}
-              </p>
+          <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h4 className="text-xs font-bold uppercase text-zinc-200 tracking-wider font-fantasy">
+                  Metoda rozdělení vlastností (D&D 2024)
+                </h4>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  {statMethod === 'standard'
+                    ? 'Přiřaďte všech 6 hodnot ze sady (15, 14, 13, 12, 10, 8) k jednotlivým vlastnostem.'
+                    : 'Rozdělte všech 27 bodů mezi vlastnosti v rozsahu 8 až 15.'}
+                </p>
+              </div>
+              <div className="flex space-x-2 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleSwitchStatMethod('standard')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
+                    statMethod === 'standard'
+                      ? 'bg-zinc-200 text-zinc-900 border-transparent shadow-sm'
+                      : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+                  }`}
+                >
+                  Standard Array
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSwitchStatMethod('pointbuy')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
+                    statMethod === 'pointbuy'
+                      ? 'bg-zinc-200 text-zinc-900 border-transparent shadow-sm'
+                      : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+                  }`}
+                >
+                  Point Buy (zbývá {pointsRemaining} b.)
+                </button>
+              </div>
             </div>
-            <div className="flex space-x-2 flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => handleSwitchStatMethod('standard')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
-                  statMethod === 'standard'
-                    ? 'bg-zinc-200 text-zinc-900 border-transparent shadow-sm'
-                    : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
-                }`}
-              >
-                Standard Array
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchStatMethod('pointbuy')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
-                  statMethod === 'pointbuy'
-                    ? 'bg-zinc-200 text-zinc-900 border-transparent shadow-sm'
-                    : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
-                }`}
-              >
-                Point Buy ({pointsRemaining} / 27 b.)
-              </button>
-            </div>
+
+            {/* Přehled volných a použitých čísel u Standard Array */}
+            {statMethod === 'standard' && (
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10 text-xs">
+                <span className="text-zinc-400">Dostupná čísla ze sady:</span>
+                {STANDARD_ARRAY.map((val) => {
+                  const usedBy = STAT_KEYS.find((k) => baseStats[k] === val);
+                  return (
+                    <span
+                      key={val}
+                      className={`px-2.5 py-1 rounded-lg font-bold border transition-all ${
+                        usedBy
+                          ? 'bg-white/5 border-white/10 text-zinc-500 line-through'
+                          : 'bg-zinc-200/15 border-white/30 text-white shadow-sm'
+                      }`}
+                    >
+                      {val} {usedBy ? `(${usedBy.toUpperCase()})` : ''}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Karty 6 vlastností */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {STAT_KEYS.map((s) => {
               const base = baseStats[s];
+              const isAssigned = base > 0;
               const bgBonus = getBackgroundBonus(s);
-              const final = finalStats[s];
-              const mod = calculateModifier(final);
+              const final = isAssigned ? base + bgBonus : 0;
+              const mod = isAssigned ? calculateModifier(final) : 0;
               return (
                 <div
                   key={s}
-                  className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl text-center space-y-2 shadow-xl"
+                  className={`bg-zinc-900/40 backdrop-blur-md border p-4 rounded-2xl text-center space-y-2 shadow-xl transition-colors ${
+                    isAssigned ? 'border-white/15' : 'border-white/10'
+                  }`}
                 >
                   <div className="flex items-center justify-center space-x-1.5">
                     <span className="text-xs font-bold uppercase text-zinc-300 tracking-wider font-fantasy">
@@ -541,27 +585,36 @@ export default function CreateCharacterPage() {
                     )}
                   </div>
 
-                  <div className="text-3xl font-black text-white">{final}</div>
+                  <div className={`text-3xl font-black ${isAssigned ? 'text-white' : 'text-zinc-600'}`}>
+                    {isAssigned ? final : '—'}
+                  </div>
                   <div className="text-xs font-bold text-zinc-300 bg-white/5 border border-white/10 rounded-lg py-1">
-                    Modifikátor: {formatModifier(mod)}
+                    {isAssigned ? `Modifikátor: ${formatModifier(mod)}` : 'Nepřiřazeno'}
                   </div>
 
                   {/* Ovládání základu dle zvolené metody */}
                   {statMethod === 'standard' ? (
                     <div className="pt-1">
-                      <label className="block text-[10px] text-zinc-400 mb-1">
-                        Přiřazená hodnota ze sady:
-                      </label>
                       <select
                         value={base}
                         onChange={(e) => handleStandardArraySelect(s, parseInt(e.target.value))}
-                        className="w-full bg-zinc-900/80 border border-white/15 rounded-xl px-3 py-1.5 text-center text-xs font-bold text-white focus:outline-none focus:border-white/40 cursor-pointer"
+                        className={`w-full bg-zinc-900/80 border rounded-xl px-2.5 py-1.5 text-center text-xs font-bold focus:outline-none cursor-pointer ${
+                          isAssigned
+                            ? 'border-white/25 text-white'
+                            : 'border-white/15 text-zinc-400'
+                        }`}
                       >
+                        <option value={0}>— Vyberte hodnotu —</option>
                         {STANDARD_ARRAY.map((val) => {
                           const ownerKey = STAT_KEYS.find((k) => baseStats[k] === val);
                           return (
                             <option key={val} value={val}>
-                              {val} {ownerKey && ownerKey !== s ? `(prohodit s ${ownerKey.toUpperCase()})` : '(aktuální)'}
+                              {val}{' '}
+                              {ownerKey && ownerKey !== s
+                                ? `(prohodit s ${ownerKey.toUpperCase()})`
+                                : ownerKey === s
+                                ? '(vybráno)'
+                                : '(volné)'}
                             </option>
                           );
                         })}
@@ -647,6 +700,7 @@ export default function CreateCharacterPage() {
                     onChange={(e) => handleSelectPlus2(e.target.value)}
                     className="w-full bg-zinc-900/80 border border-white/15 rounded-xl p-2.5 text-zinc-100 font-semibold focus:outline-none focus:border-white/30"
                   >
+                    <option value="">— Vyberte vlastnost (+2) —</option>
                     {selectedBackground.statOptions.map((opt) => (
                       <option key={opt} value={opt.toLowerCase()}>
                         {opt} {opt.toLowerCase() === statPlus1 ? '(prohodit s +1)' : ''}
@@ -661,6 +715,7 @@ export default function CreateCharacterPage() {
                     onChange={(e) => handleSelectPlus1(e.target.value)}
                     className="w-full bg-zinc-900/80 border border-white/15 rounded-xl p-2.5 text-zinc-100 font-semibold focus:outline-none focus:border-white/30"
                   >
+                    <option value="">— Vyberte vlastnost (+1) —</option>
                     {selectedBackground.statOptions.map((opt) => (
                       <option key={opt} value={opt.toLowerCase()}>
                         {opt} {opt.toLowerCase() === statPlus2 ? '(prohodit s +2)' : ''}
@@ -675,11 +730,22 @@ export default function CreateCharacterPage() {
               </div>
             )}
 
-            <div className="flex items-center space-x-2 text-xs text-red-300 pt-1 font-semibold">
-              <Heart className="w-4 h-4 fill-red-400 text-red-400" />
-              <span>
-                Počáteční životy (Úroveň {startingLevel}): <strong>{startingHp} HP</strong>
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+              <div className="flex items-center space-x-2 text-xs text-red-300 font-semibold">
+                <Heart className="w-4 h-4 fill-red-400 text-red-400" />
+                <span>
+                  Počáteční životy (Úroveň {startingLevel}): <strong>{startingHp} HP</strong>
+                </span>
+              </div>
+              {!isStep4Valid && (
+                <span className="text-xs text-zinc-300">
+                  {!isBaseStatsComplete
+                    ? statMethod === 'standard'
+                      ? '• Přiřaďte prosím všech 6 čísel vlastnostem'
+                      : `• Rozdělte ještě zbývajících ${pointsRemaining} bodů`
+                    : '• Vyberte prosím +2 a +1 bonusy z původu'}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -834,8 +900,9 @@ export default function CreateCharacterPage() {
         {step < 5 ? (
           <button
             type="button"
+            disabled={step === 4 && !isStep4Valid}
             onClick={() => setStep(step + 1)}
-            className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 flex items-center space-x-1.5 px-6 py-2.5 rounded-xl text-xs font-bold"
+            className="bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 flex items-center space-x-1.5 px-6 py-2.5 rounded-xl text-xs font-bold disabled:opacity-40 disabled:pointer-events-none"
           >
             <span>Pokračovat</span>
             <ArrowRight className="w-4 h-4" />
