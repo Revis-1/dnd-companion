@@ -7,6 +7,7 @@ import {
   SPECIES_2024,
   CLASSES_2024,
   BACKGROUNDS_2024,
+  STANDARD_ARRAY,
   calculateModifier,
   formatModifier,
   calculateMaxHp,
@@ -86,6 +87,8 @@ export default function CreateCharacterPage() {
     cha: 8,
   });
 
+  const [statMethod, setStatMethod] = useState<'standard' | 'pointbuy'>('standard');
+  const [bgBonusMode, setBgBonusMode] = useState<'2_1' | '1_1_1'>('2_1');
   const [statPlus2, setStatPlus2] = useState<string>('');
   const [statPlus1, setStatPlus1] = useState<string>('');
 
@@ -127,13 +130,104 @@ export default function CreateCharacterPage() {
     }
   }, [startingLevel, selectedClass]);
 
+  const STAT_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
+  type StatKey = (typeof STAT_KEYS)[number];
+
+  const POINT_BUY_COST: Record<number, number> = {
+    8: 0,
+    9: 1,
+    10: 2,
+    11: 3,
+    12: 4,
+    13: 5,
+    14: 7,
+    15: 9,
+  };
+
+  const totalPointBuySpent = STAT_KEYS.reduce(
+    (sum, k) => sum + (POINT_BUY_COST[baseStats[k]] ?? 0),
+    0
+  );
+  const pointsRemaining = 27 - totalPointBuySpent;
+
+  const handleSwitchStatMethod = (method: 'standard' | 'pointbuy') => {
+    setStatMethod(method);
+    if (method === 'standard') {
+      setBaseStats({ str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 });
+    } else {
+      setBaseStats({ str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 }); // součet v Point Buy je přesně 27 bodů!
+    }
+  };
+
+  // Standard Array: při změně hodnoty automaticky prohodí hodnotu s vlastností, která ji měla doteď
+  const handleStandardArraySelect = (targetStat: StatKey, newValue: number) => {
+    const oldValue = baseStats[targetStat];
+    if (oldValue === newValue) return;
+
+    const otherStat = STAT_KEYS.find((k) => k !== targetStat && baseStats[k] === newValue);
+    if (otherStat) {
+      setBaseStats({
+        ...baseStats,
+        [targetStat]: newValue,
+        [otherStat]: oldValue,
+      });
+    } else {
+      setBaseStats({
+        ...baseStats,
+        [targetStat]: newValue,
+      });
+    }
+  };
+
+  // Point Buy: zvýšení / snížení v rozsahu 8–15 a do limitu 27 bodů
+  const handlePointBuyChange = (targetStat: StatKey, delta: 1 | -1) => {
+    const currentVal = baseStats[targetStat];
+    const nextVal = currentVal + delta;
+    if (nextVal < 8 || nextVal > 15) return;
+
+    const costDiff = POINT_BUY_COST[nextVal] - POINT_BUY_COST[currentVal];
+    if (costDiff > pointsRemaining) return;
+
+    setBaseStats({
+      ...baseStats,
+      [targetStat]: nextVal,
+    });
+  };
+
+  // Bonus z Původu (Background) pro danou vlastnost
+  const getBackgroundBonus = (statKey: StatKey): number => {
+    const allowed = selectedBackground.statOptions.map((o) => o.toLowerCase());
+    if (bgBonusMode === '1_1_1') {
+      return allowed.includes(statKey) ? 1 : 0;
+    }
+    if (statPlus2 === statKey) return 2;
+    if (statPlus1 === statKey) return 1;
+    return 0;
+  };
+
+  const handleSelectPlus2 = (val: string) => {
+    if (val === statPlus1) {
+      // Prohodí +2 a +1, aby nemohla být stejná vlastnost dvakrát
+      setStatPlus1(statPlus2);
+    }
+    setStatPlus2(val);
+  };
+
+  const handleSelectPlus1 = (val: string) => {
+    if (val === statPlus2) {
+      // Prohodí +1 a +2, aby nemohla být stejná vlastnost dvakrát
+      setStatPlus2(statPlus1);
+    }
+    setStatPlus1(val);
+  };
+
   const finalStats = {
-    str: baseStats.str + (statPlus2 === 'str' ? 2 : 0) + (statPlus1 === 'str' ? 1 : 0),
-    dex: baseStats.dex + (statPlus2 === 'dex' ? 2 : 0) + (statPlus1 === 'dex' ? 1 : 0),
-    con: baseStats.con + (statPlus2 === 'con' ? 2 : 0) + (statPlus1 === 'con' ? 1 : 0),
-    int: baseStats.int + (statPlus2 === 'int' ? 2 : 0) + (statPlus1 === 'int' ? 1 : 0),
-    wis: baseStats.wis + (statPlus2 === 'wis' ? 2 : 0) + (statPlus1 === 'wis' ? 1 : 0),
-    cha: baseStats.cha + (statPlus2 === 'cha' ? 2 : 0) + (statPlus1 === 'cha' ? 1 : 0),
+    str: baseStats.str + getBackgroundBonus('str'),
+    dex: baseStats.dex + getBackgroundBonus('dex'),
+    con: baseStats.con + getBackgroundBonus('con'),
+    int: baseStats.int + getBackgroundBonus('int'),
+    wis: baseStats.wis + getBackgroundBonus('wis'),
+    cha: baseStats.cha + getBackgroundBonus('cha'),
   };
 
   const conMod = calculateModifier(finalStats.con);
@@ -386,68 +480,206 @@ export default function CreateCharacterPage() {
       {/* Step 4: Stats */}
       {step === 4 && (
         <div className="space-y-5">
-          <p className="text-sm text-zinc-300">
-            Rozdělení vlastností (Standard Array 15, 14, 13, 12, 10, 8) + bonusy z původu:
-          </p>
+          {/* Přepínač metody rozdělení vlastností */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl">
+            <div>
+              <h4 className="text-xs font-bold uppercase text-zinc-200 tracking-wider font-fantasy">
+                Metoda rozdělení vlastností (D&D 2024)
+              </h4>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                {statMethod === 'standard'
+                  ? 'Každé číslo ze sady (15, 14, 13, 12, 10, 8) je použito právě jednou. Při výběru se hodnoty prohodí.'
+                  : 'Máte 27 bodů k nákupu vlastností v rozsahu 8 až 15 (před přičtením bonusů z původu).'}
+              </p>
+            </div>
+            <div className="flex space-x-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => handleSwitchStatMethod('standard')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
+                  statMethod === 'standard'
+                    ? 'bg-zinc-200 text-zinc-900 border-transparent shadow-sm'
+                    : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+                }`}
+              >
+                Standard Array
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchStatMethod('pointbuy')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
+                  statMethod === 'pointbuy'
+                    ? 'bg-zinc-200 text-zinc-900 border-transparent shadow-sm'
+                    : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+                }`}
+              >
+                Point Buy ({pointsRemaining} / 27 b.)
+              </button>
+            </div>
+          </div>
 
+          {/* Karty 6 vlastností */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {(['str', 'dex', 'con', 'int', 'wis', 'cha'] as const).map((s) => {
+            {STAT_KEYS.map((s) => {
               const base = baseStats[s];
+              const bgBonus = getBackgroundBonus(s);
               const final = finalStats[s];
               const mod = calculateModifier(final);
               return (
-                <div key={s} className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-3.5 rounded-2xl text-center space-y-1 shadow-xl">
-                  <span className="text-xs font-bold uppercase text-zinc-400">{s}</span>
-                  <div className="text-2xl font-black text-white">{final}</div>
-                  <div className="text-xs font-bold text-zinc-300">Modifikátor: {formatModifier(mod)}</div>
-                  <input
-                    type="number"
-                    min="3"
-                    max="20"
-                    value={base}
-                    onChange={(e) =>
-                      setBaseStats({ ...baseStats, [s]: parseInt(e.target.value) || 10 })
-                    }
-                    className="w-16 mx-auto bg-white/5 border border-white/10 rounded-lg text-center text-xs py-1 text-white focus:outline-none focus:border-white/30"
-                  />
+                <div
+                  key={s}
+                  className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl text-center space-y-2 shadow-xl"
+                >
+                  <div className="flex items-center justify-center space-x-1.5">
+                    <span className="text-xs font-bold uppercase text-zinc-300 tracking-wider font-fantasy">
+                      {s}
+                    </span>
+                    {bgBonus > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold">
+                        +{bgBonus} původ
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="text-3xl font-black text-white">{final}</div>
+                  <div className="text-xs font-bold text-zinc-300 bg-white/5 border border-white/10 rounded-lg py-1">
+                    Modifikátor: {formatModifier(mod)}
+                  </div>
+
+                  {/* Ovládání základu dle zvolené metody */}
+                  {statMethod === 'standard' ? (
+                    <div className="pt-1">
+                      <label className="block text-[10px] text-zinc-400 mb-1">
+                        Přiřazená hodnota ze sady:
+                      </label>
+                      <select
+                        value={base}
+                        onChange={(e) => handleStandardArraySelect(s, parseInt(e.target.value))}
+                        className="w-full bg-zinc-900/80 border border-white/15 rounded-xl px-3 py-1.5 text-center text-xs font-bold text-white focus:outline-none focus:border-white/40 cursor-pointer"
+                      >
+                        {STANDARD_ARRAY.map((val) => {
+                          const ownerKey = STAT_KEYS.find((k) => baseStats[k] === val);
+                          return (
+                            <option key={val} value={val}>
+                              {val} {ownerKey && ownerKey !== s ? `(prohodit s ${ownerKey.toUpperCase()})` : '(aktuální)'}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="pt-1 space-y-1">
+                      <span className="block text-[10px] text-zinc-400">
+                        Základ: <strong className="text-zinc-200">{base}</strong> (cena {POINT_BUY_COST[base]} b.)
+                      </span>
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          type="button"
+                          disabled={base <= 8}
+                          onClick={() => handlePointBuyChange(s, -1)}
+                          className="w-8 h-7 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-white font-bold text-sm disabled:opacity-30 transition"
+                        >
+                          -
+                        </button>
+                        <span className="text-xs font-bold text-zinc-200 w-6">{base}</span>
+                        <button
+                          type="button"
+                          disabled={
+                            base >= 15 ||
+                            (POINT_BUY_COST[base + 1] - POINT_BUY_COST[base] > pointsRemaining)
+                          }
+                          onClick={() => handlePointBuyChange(s, 1)}
+                          className="w-8 h-7 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-white font-bold text-sm disabled:opacity-30 transition"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
+          {/* Bonusy z Původu (Background) */}
           <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl space-y-3 shadow-xl">
-            <h4 className="text-xs font-bold uppercase text-zinc-200 tracking-wider">
-              Bonusy z původu ({selectedBackground.name})
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <label className="block text-zinc-300 mb-1">+2 Bonus k vlastnosti:</label>
-                <select
-                  value={statPlus2}
-                  onChange={(e) => setStatPlus2(e.target.value)}
-                  className="w-full bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-white/30"
-                >
-                  {selectedBackground.statOptions.map((opt) => (
-                    <option key={opt} value={opt.toLowerCase()}>{opt}</option>
-                  ))}
-                </select>
+                <h4 className="text-xs font-bold uppercase text-zinc-200 tracking-wider font-fantasy">
+                  Bonusy z původu ({selectedBackground.name})
+                </h4>
+                <p className="text-[11px] text-zinc-400">
+                  Povolené vlastnosti původu: <strong>{selectedBackground.statOptions.join(', ')}</strong>
+                </p>
               </div>
-              <div>
-                <label className="block text-zinc-300 mb-1">+1 Bonus k vlastnosti:</label>
-                <select
-                  value={statPlus1}
-                  onChange={(e) => setStatPlus1(e.target.value)}
-                  className="w-full bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-white/30"
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setBgBonusMode('2_1')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                    bgBonusMode === '2_1'
+                      ? 'bg-zinc-200 text-zinc-900 border-transparent'
+                      : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+                  }`}
                 >
-                  {selectedBackground.statOptions.map((opt) => (
-                    <option key={opt} value={opt.toLowerCase()}>{opt}</option>
-                  ))}
-                </select>
+                  +2 a +1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBgBonusMode('1_1_1')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                    bgBonusMode === '1_1_1'
+                      ? 'bg-zinc-200 text-zinc-900 border-transparent'
+                      : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+                  }`}
+                >
+                  +1 / +1 / +1 (všechny 3)
+                </button>
               </div>
             </div>
+
+            {bgBonusMode === '2_1' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+                <div>
+                  <label className="block text-zinc-300 mb-1">+2 Bonus k vlastnosti:</label>
+                  <select
+                    value={statPlus2}
+                    onChange={(e) => handleSelectPlus2(e.target.value)}
+                    className="w-full bg-zinc-900/80 border border-white/15 rounded-xl p-2.5 text-zinc-100 font-semibold focus:outline-none focus:border-white/30"
+                  >
+                    {selectedBackground.statOptions.map((opt) => (
+                      <option key={opt} value={opt.toLowerCase()}>
+                        {opt} {opt.toLowerCase() === statPlus1 ? '(prohodit s +1)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-zinc-300 mb-1">+1 Bonus k vlastnosti:</label>
+                  <select
+                    value={statPlus1}
+                    onChange={(e) => handleSelectPlus1(e.target.value)}
+                    className="w-full bg-zinc-900/80 border border-white/15 rounded-xl p-2.5 text-zinc-100 font-semibold focus:outline-none focus:border-white/30"
+                  >
+                    {selectedBackground.statOptions.map((opt) => (
+                      <option key={opt} value={opt.toLowerCase()}>
+                        {opt} {opt.toLowerCase() === statPlus2 ? '(prohodit s +2)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
+                Každá ze tří vlastností původu (<strong>{selectedBackground.statOptions.join(', ')}</strong>) získává bonus <strong>+1</strong>.
+              </div>
+            )}
+
             <div className="flex items-center space-x-2 text-xs text-red-300 pt-1 font-semibold">
               <Heart className="w-4 h-4 fill-red-400 text-red-400" />
-              <span>Počáteční životy (1. úroveň): <strong>{startingHp} HP</strong></span>
+              <span>
+                Počáteční životy (Úroveň {startingLevel}): <strong>{startingHp} HP</strong>
+              </span>
             </div>
           </div>
         </div>
