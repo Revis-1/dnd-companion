@@ -95,9 +95,12 @@ export default function CreateCharacterPage() {
 
   const [charName, setCharName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [fullImageUrl, setFullImageUrl] = useState('');
   const [avatarFileName, setAvatarFileName] = useState('');
 
-  // Automatické zmenšení a čtvercový ořez nahraného obrázku (256x256 px, ~15-25 kB) přímo v prohlížeči
+  // Automatické zpracování obrázku:
+  // 1) Velký obrázek celé postavy (fullImageUrl, max 600x800 px se zachováním poměru stran)
+  // 2) Profilový výřez obličeje/horní části (avatarUrl, 200x200 px)
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -111,27 +114,51 @@ export default function CreateCharacterPage() {
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        const size = 256;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // Čtvercový středový ořez (center crop)
-        const minSide = Math.min(img.width, img.height);
-        const sx = (img.width - minSide) / 2;
-        const sy = (img.height - minSide) / 2;
-
-        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-
-        // Komprese do WebP (nebo JPEG fallbacku) s kvalitou 0.82 (~15–25 kB)
-        let compressedDataUrl = canvas.toDataURL('image/webp', 0.82);
-        if (!compressedDataUrl.startsWith('data:image/webp')) {
-          compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        // 1. Velká ilustrace celé postavy (zachová poměr stran, max 600x800)
+        const maxW = 600;
+        const maxH = 800;
+        let targetW = img.width;
+        let targetH = img.height;
+        if (targetW > maxW || targetH > maxH) {
+          const ratio = Math.min(maxW / targetW, maxH / targetH);
+          targetW = Math.round(targetW * ratio);
+          targetH = Math.round(targetH * ratio);
         }
 
-        setAvatarUrl(compressedDataUrl);
+        const fullCanvas = document.createElement('canvas');
+        fullCanvas.width = targetW;
+        fullCanvas.height = targetH;
+        const fullCtx = fullCanvas.getContext('2d');
+        if (fullCtx) {
+          fullCtx.drawImage(img, 0, 0, targetW, targetH);
+          let fullCompressed = fullCanvas.toDataURL('image/webp', 0.82);
+          if (!fullCompressed.startsWith('data:image/webp')) {
+            fullCompressed = fullCanvas.toDataURL('image/jpeg', 0.82);
+          }
+          setFullImageUrl(fullCompressed);
+        }
+
+        // 2. Malý profilový medailonek (200x200 px zaměřený na horní část / obličej postavy)
+        const size = 200;
+        const faceCanvas = document.createElement('canvas');
+        faceCanvas.width = size;
+        faceCanvas.height = size;
+        const faceCtx = faceCanvas.getContext('2d');
+        if (faceCtx) {
+          const minSide = Math.min(img.width, img.height);
+          const sx = (img.width - minSide) / 2;
+          // Zaměříme horní část (cca 12 % odshora), kde bývá hlava/obličej postavy
+          const sy = Math.max(0, (img.height - minSide) * 0.12);
+
+          faceCtx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+          let faceCompressed = faceCanvas.toDataURL('image/webp', 0.82);
+          if (!faceCompressed.startsWith('data:image/webp')) {
+            faceCompressed = faceCanvas.toDataURL('image/jpeg', 0.82);
+          }
+          setAvatarUrl(faceCompressed);
+        }
+
         setAvatarFileName(file.name);
       };
       if (typeof event.target?.result === 'string') {
@@ -327,6 +354,7 @@ export default function CreateCharacterPage() {
           spell_slots: { '1': { max: 2, used: 0 } },
           conditions: [],
           avatar_url: avatarUrl.trim() || null,
+          full_image_url: fullImageUrl.trim() || avatarUrl.trim() || null,
         },
       ]).select().single();
 
@@ -840,6 +868,7 @@ export default function CreateCharacterPage() {
                     type="button"
                     onClick={() => {
                       setAvatarUrl('');
+                      setFullImageUrl('');
                       setAvatarFileName('');
                     }}
                     title="Odebrat obrázek"
