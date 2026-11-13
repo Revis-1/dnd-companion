@@ -38,7 +38,11 @@ export default function Navbar() {
             <>
               <Link href="/vault" className="flex items-center space-x-1.5 text-gray-300 hover:text-fantasy-gold transition">
                 <User className="w-4 h-4" />
-                <span>Trezor postav</span>
+                <span>Trezor</span>
+              </Link>
+              <Link href="/campaigns" className="flex items-center space-x-1.5 text-gray-300 hover:text-fantasy-gold transition">
+                <Shield className="w-4 h-4" />
+                <span>Kampaně</span>
               </Link>
               <Link href="/create" className="flex items-center space-x-1.5 text-fantasy-gold hover:text-fantasy-goldHover bg-fantasy-card border border-fantasy-gold/30 px-3 py-1.5 rounded-md transition font-medium">
                 <Sparkles className="w-4 h-4" />

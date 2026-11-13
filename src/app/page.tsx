@@ -27,10 +27,10 @@ export default function HomePage() {
             Otevřít Trezor postav
           </Link>
           <Link
-            href="/create"
-            className="bg-fantasy-card border border-fantasy-border text-fantasy-parchment font-semibold px-6 py-3 rounded-lg hover:border-fantasy-gold/50 transition"
+            href="/campaigns"
+            className="bg-fantasy-card border border-fantasy-gold/40 text-fantasy-gold font-semibold px-6 py-3 rounded-lg hover:border-fantasy-gold transition"
           >
-            Vytvořit novou postavu
+            Spravovat Kampaně (DM)
           </Link>
         </div>
       </div>
