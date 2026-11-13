@@ -47,68 +47,72 @@ export default function VaultPage() {
   };
 
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-6 space-y-8">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-fantasy-border pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
-            <User className="w-6 h-6 text-fantasy-gold" />
-            <span>Trezor postav (Character Vault)</span>
+          <h2 className="text-3xl font-black text-white flex items-center space-x-2 font-fantasy">
+            <span className="bg-gradient-to-r from-yellow-500 via-amber-300 to-amber-100 bg-clip-text text-transparent">
+              Trezor postav
+            </span>
           </h2>
-          <p className="text-xs text-gray-400">
-            Správa vašich hrdinů. Postavy zde můžete připravovat a tvořit předem.
+          <p className="text-xs text-slate-400 mt-1">
+            Správa vašich hrdinů. Postavy zde můžete připravovat a spravovat předem.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Tlačítko na pozvání kamaráda do aplikace bez nutnosti kampaně */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Tlačítko na pozvání kamaráda */}
           <button
             onClick={() => setShowInviteModal(true)}
-            className="inline-flex items-center space-x-2 bg-[#26170d] hover:bg-[#382112] border border-[#6b4421] text-fantasy-gold font-bold px-4 py-2 rounded-xl transition text-xs shadow-md"
+            className="btn-outline-glass px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2"
           >
-            <UserPlus className="w-4 h-4" />
-            <span>Pozvat kamaráda</span>
+            <UserPlus className="w-4 h-4 text-yellow-400" />
+            <span>Pozvat hráče</span>
           </button>
 
           <Link
             href="/create"
-            className="btn-gold inline-flex items-center space-x-2 px-4 py-2 rounded-xl transition text-xs shadow-md"
+            className="btn-gold-glow px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-slate-950" />
             <span>Vytvořit postavu</span>
           </Link>
         </div>
       </div>
 
+      {/* Gradientová oddělovací linka */}
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-yellow-600/50 to-transparent" />
+
       {/* Modal pro pozvání kamaráda */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-fantasy-card border border-fantasy-border w-full max-w-md rounded-2xl p-6 space-y-5 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-black/60 backdrop-blur-xl border border-white/10 w-full max-w-md rounded-2xl p-6 space-y-5 shadow-2xl relative shadow-black/80">
             <button
               onClick={() => setShowInviteModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="space-y-1">
-              <div className="inline-flex items-center space-x-2 text-xs font-bold text-fantasy-gold uppercase">
+              <div className="inline-flex items-center space-x-2 text-xs font-bold text-yellow-400 uppercase tracking-wider">
                 <Sparkles className="w-4 h-4" />
                 <span>Pozvánka pro nového hráče</span>
               </div>
-              <h3 className="text-xl font-bold text-white">Pozvat kamaráda do aplikace</h3>
-              <p className="text-xs text-gray-400">
-                Pošlete tento odkaz kamarádovi. Umožní mu zaregistrovat se a ihned si v Trezoru připravit své postavy, aniž byste museli zakládat kampaň.
+              <h3 className="text-xl font-bold text-white font-fantasy">Pozvat kamaráda do aplikace</h3>
+              <p className="text-xs text-slate-400">
+                Pošlete tento odkaz kamarádovi. Umožní mu zaregistrovat se a ihned si v Trezoru připravit své postavy.
               </p>
             </div>
 
-            <div className="bg-fantasy-darker border border-fantasy-border p-3 rounded-xl flex items-center justify-between text-xs space-x-2">
-              <span className="font-mono text-fantasy-gold truncate text-[11px]">
+            <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex items-center justify-between text-xs space-x-2">
+              <span className="font-mono text-yellow-300 truncate text-[11px]">
                 {getInviteUrl()}
               </span>
               <button
                 onClick={handleCopyInvite}
-                className="flex items-center space-x-1 bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold px-3 py-1.5 rounded-lg transition flex-shrink-0"
+                className="btn-gold-glow px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 flex-shrink-0"
               >
                 {copiedInvite ? (
                   <>
@@ -124,13 +128,13 @@ export default function VaultPage() {
               </button>
             </div>
 
-            <div className="text-[11px] text-gray-400 bg-fantasy-darker/60 p-3 rounded-lg border border-fantasy-border/60">
-              💡 <strong>Jak to funguje:</strong> Kamarád klikne na odkaz, zadá své jméno a heslo, a je hotovo! Může si rovnou vytvořit hrdinu podle pravidel D&D 2024.
+            <div className="text-[11px] text-slate-400 bg-white/5 p-3 rounded-xl border border-white/10">
+              💡 <strong>Jak to funguje:</strong> Kamarád klikne na odkaz, zadá své jméno a heslo, a je hotovo!
             </div>
 
             <button
               onClick={() => setShowInviteModal(false)}
-              className="w-full bg-fantasy-darker hover:bg-fantasy-border text-gray-300 py-2 rounded-lg text-xs font-semibold transition"
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 py-2.5 rounded-xl text-xs font-semibold transition"
             >
               Zavřít
             </button>
@@ -139,25 +143,27 @@ export default function VaultPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Načítám vaše postavy z trezoru...</div>
+        <div className="text-center py-16 text-slate-400">Načítám vaše postavy z trezoru...</div>
       ) : characters.length === 0 ? (
-        <div className="text-center py-16 bg-fantasy-card/50 border border-dashed border-fantasy-border rounded-xl space-y-4">
-          <Shield className="w-12 h-12 text-gray-600 mx-auto" />
-          <h3 className="text-lg font-semibold text-gray-300">Váš trezor je zatím prázdný</h3>
-          <p className="text-xs text-gray-500 max-w-sm mx-auto">
+        <div className="text-center py-20 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl space-y-5">
+          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-yellow-500/60 shadow-inner">
+            <Shield className="w-8 h-8" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-200 font-fantasy">Váš trezor je zatím prázdný</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
             Vytvořte si svou první postavu podle pravidel D&D 2024 s automatickým výpočtem statistik a původem.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
               href="/create"
-              className="inline-flex items-center space-x-2 bg-fantasy-gold text-black font-bold px-5 py-2.5 rounded-lg hover:bg-fantasy-goldHover transition text-xs"
+              className="btn-gold-glow px-6 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2"
             >
               <Sparkles className="w-4 h-4" />
               <span>Vytvořit prvního hrdinu</span>
             </Link>
             <button
               onClick={() => setShowInviteModal(true)}
-              className="inline-flex items-center space-x-2 bg-fantasy-card border border-fantasy-border text-fantasy-gold font-bold px-5 py-2.5 rounded-lg hover:border-fantasy-gold transition text-xs"
+              className="btn-outline-glass px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2"
             >
               <UserPlus className="w-4 h-4" />
               <span>Pozvat kamaráda</span>
@@ -165,49 +171,51 @@ export default function VaultPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {characters.map((char) => (
             <div
               key={char.id}
-              className="tome-page hover:border-[#855728] rounded-2xl p-5 flex flex-col justify-between space-y-4 transition group"
+              className="bg-black/40 backdrop-blur-md border border-white/10 hover:border-yellow-500/30 p-5 rounded-2xl flex flex-col justify-between space-y-4 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] group"
             >
-              <div className="flex items-start space-x-3">
-                <div className="w-14 h-14 rounded-full bg-fantasy-darker border border-fantasy-border flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-fantasy-gold transition">
+              <div className="flex items-start space-x-3.5">
+                <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-yellow-500/40 transition-colors">
                   {char.avatar_url ? (
                     <img src={char.avatar_url} alt={char.name} className="w-full h-full object-cover" />
                   ) : (
-                    <Shield className="w-7 h-7 text-fantasy-gold" />
+                    <Shield className="w-7 h-7 text-yellow-400" />
                   )}
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <h3 className="font-bold text-white text-base">{char.name}</h3>
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-fantasy-darker text-fantasy-gold border border-fantasy-gold/30">
+                    <h3 className="font-bold text-white text-base group-hover:text-yellow-300 transition-colors font-fantasy">
+                      {char.name}
+                    </h3>
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
                       Lvl {char.level}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-slate-300">
                     {char.species} • {char.class_name} {char.subclass && `(${char.subclass})`}
                   </p>
-                  <p className="text-[11px] text-gray-500">
+                  <p className="text-[11px] text-slate-500">
                     Původ: {char.background || 'Neuveden'}
                   </p>
                 </div>
               </div>
 
               {/* Status badges */}
-              <div className="flex items-center justify-between text-xs pt-2 border-t border-fantasy-border/60">
+              <div className="flex items-center justify-between text-xs pt-3 border-t border-white/10">
                 <div className="flex items-center space-x-1.5 text-red-400 font-semibold">
                   <Heart className="w-3.5 h-3.5 fill-red-400" />
                   <span>{char.hp_current} / {char.hp_max} HP</span>
                 </div>
                 <div>
                   {char.campaign_id ? (
-                    <span className="text-[10px] text-blue-400 bg-blue-950/40 border border-blue-800/40 px-2 py-0.5 rounded">
+                    <span className="text-[10px] text-blue-300 bg-blue-950/40 border border-blue-500/30 px-2 py-0.5 rounded-md">
                       🔵 V kampani
                     </span>
                   ) : (
-                    <span className="text-[10px] text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded">
+                    <span className="text-[10px] text-emerald-300 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded-md">
                       🟢 Volná v trezoru
                     </span>
                   )}
@@ -216,10 +224,10 @@ export default function VaultPage() {
 
               <Link
                 href={`/character/${char.id}`}
-                className="w-full bg-[#1b1008] hover:bg-[#2b190c] border border-[#5a3818] text-fantasy-parchment font-semibold text-xs py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 shadow"
+                className="w-full bg-white/5 hover:bg-yellow-500/10 border border-white/10 hover:border-yellow-500/40 text-slate-200 hover:text-yellow-200 font-semibold text-xs py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center space-x-1.5"
               >
                 <span>Otevřít deník postavy</span>
-                <ArrowRight className="w-3.5 h-3.5 text-fantasy-gold" />
+                <ArrowRight className="w-3.5 h-3.5 text-yellow-400" />
               </Link>
             </div>
           ))}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Campaign } from '@/types/database';
-import { Users, Plus, Shield, Copy, Check, Box, BookOpen, ArrowRight } from 'lucide-react';
+import { Users, Plus, Shield, Copy, Check, Box, ArrowRight } from 'lucide-react';
 
 export default function CampaignsPage() {
   const router = useRouter();
@@ -58,7 +58,6 @@ export default function CampaignsPage() {
       .single();
 
     if (data) {
-      // DM is also a campaign member
       await supabase.from('campaign_members').insert([
         { campaign_id: data.id, user_id: user.id },
       ]);
@@ -77,21 +76,24 @@ export default function CampaignsPage() {
 
   return (
     <div className="py-6 space-y-8 max-w-4xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-fantasy-border pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
-            <Users className="w-6 h-6 text-fantasy-gold" />
-            <span>Kampaně a Družiny</span>
+          <h2 className="text-3xl font-black text-white flex items-center space-x-2 font-fantasy">
+            <span className="bg-gradient-to-r from-yellow-500 via-amber-300 to-amber-100 bg-clip-text text-transparent">
+              Kampaně a Družiny
+            </span>
           </h2>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-400 mt-1">
             Správa herních stolů a generování unikátních zvacích odkazů pro vaše hráče.
           </p>
         </div>
       </div>
 
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-yellow-600/50 to-transparent" />
+
       {/* Vytvoření nové kampaně */}
-      <form onSubmit={handleCreateCampaign} className="bg-fantasy-card border border-fantasy-border p-5 rounded-xl space-y-3">
-        <h4 className="text-xs font-bold text-fantasy-gold uppercase tracking-wider flex items-center space-x-1.5">
+      <form onSubmit={handleCreateCampaign} className="bg-black/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl space-y-4 shadow-xl">
+        <h4 className="text-xs font-bold text-yellow-400 uppercase tracking-wider flex items-center space-x-1.5">
           <Plus className="w-4 h-4" />
           <span>Založit novou kampaň (Dungeon Master)</span>
         </h4>
@@ -102,12 +104,12 @@ export default function CampaignsPage() {
             value={newCampName}
             onChange={(e) => setNewCampName(e.target.value)}
             placeholder="Název kampaně (např. Prokletí Strahda nebo Ztracený důl)"
-            className="flex-1 bg-fantasy-darker border border-fantasy-border rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-fantasy-gold"
+            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-500/60 transition-colors"
           />
           <button
             type="submit"
             disabled={creating}
-            className="bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold px-5 py-2.5 rounded-lg text-xs transition disabled:opacity-50"
+            className="btn-gold-glow px-6 py-3 rounded-xl text-xs font-bold transition disabled:opacity-50"
           >
             {creating ? 'Zakládám...' : 'Vytvořit kampaň'}
           </button>
@@ -116,51 +118,53 @@ export default function CampaignsPage() {
 
       {/* Seznam kampaní */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+        <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider font-fantasy">
           Aktivní kampaně ({campaigns.length})
         </h3>
 
         {loading ? (
-          <div className="text-center py-12 text-gray-400">Načítám kampaně...</div>
+          <div className="text-center py-16 text-slate-400">Načítám kampaně...</div>
         ) : campaigns.length === 0 ? (
-          <div className="p-10 text-center text-gray-500 bg-fantasy-card/30 rounded-xl border border-dashed border-fantasy-border space-y-2">
-            <Users className="w-10 h-10 mx-auto text-gray-600" />
-            <p className="text-sm">Zatím nemáte vytvořenou žádnou kampaň.</p>
-            <p className="text-xs">
+          <div className="p-12 text-center text-slate-500 bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 space-y-2">
+            <Users className="w-10 h-10 mx-auto text-slate-600" />
+            <p className="text-sm text-slate-300">Zatím nemáte vytvořenou žádnou kampaň.</p>
+            <p className="text-xs text-slate-500">
               Založte kampaň formulářem výše a získáte unikátní zvací odkaz pro hráče.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {campaigns.map((camp) => (
               <div
                 key={camp.id}
-                className="bg-fantasy-card border border-fantasy-border hover:border-fantasy-gold/50 rounded-xl p-5 space-y-4 transition flex flex-col justify-between"
+                className="bg-black/40 backdrop-blur-md border border-white/10 hover:border-yellow-500/30 rounded-2xl p-6 space-y-5 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-bold text-white text-lg">{camp.name}</h4>
-                      <span className="text-[11px] text-gray-400">
-                        Zvací kód: <strong className="text-fantasy-gold">{camp.invite_code}</strong>
+                      <h4 className="font-bold text-white text-lg font-fantasy group-hover:text-yellow-300 transition-colors">
+                        {camp.name}
+                      </h4>
+                      <span className="text-[11px] text-slate-400">
+                        Zvací kód: <strong className="text-yellow-400 font-mono">{camp.invite_code}</strong>
                       </span>
                     </div>
                     {user && camp.dm_id === user.id && (
-                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-fantasy-crimson/30 border border-fantasy-crimson text-red-300">
-                        Pán jeskyně (DM)
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-red-950/40 border border-red-500/40 text-red-300">
+                        DM
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Zvací odkaz button */}
-                <div className="bg-fantasy-darker border border-fantasy-border/60 p-2.5 rounded-lg flex items-center justify-between text-xs">
-                  <span className="text-gray-400 truncate pr-2 text-[11px]">
+                <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex items-center justify-between text-xs">
+                  <span className="text-slate-400 truncate pr-2 font-mono text-[11px]">
                     /join/{camp.invite_code}
                   </span>
                   <button
                     onClick={() => copyInvite(camp.invite_code, camp.id)}
-                    className="flex items-center space-x-1 text-fantasy-gold hover:text-white transition font-semibold flex-shrink-0"
+                    className="flex items-center space-x-1 text-yellow-400 hover:text-yellow-200 transition font-semibold flex-shrink-0"
                   >
                     {copiedId === camp.id ? (
                       <>
@@ -170,24 +174,24 @@ export default function CampaignsPage() {
                     ) : (
                       <>
                         <Copy className="w-3.5 h-3.5" />
-                        <span>Kopírovat zvací odkaz</span>
+                        <span>Kopírovat odkaz</span>
                       </>
                     )}
                   </button>
                 </div>
 
                 {/* Akce */}
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-fantasy-border/60">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
                   <Link
                     href={`/campaign/${camp.id}/dm`}
-                    className="bg-fantasy-darker hover:bg-fantasy-border border border-fantasy-border text-center py-2 rounded-lg text-xs font-semibold text-white transition flex items-center justify-center space-x-1"
+                    className="bg-white/5 hover:bg-yellow-500/10 border border-white/10 hover:border-yellow-500/40 text-center py-2.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-yellow-200 transition flex items-center justify-center space-x-1.5"
                   >
-                    <Shield className="w-3.5 h-3.5 text-fantasy-gold" />
+                    <Shield className="w-3.5 h-3.5 text-yellow-400" />
                     <span>DM Dashboard</span>
                   </Link>
                   <Link
                     href={`/campaign/${camp.id}/loot`}
-                    className="bg-fantasy-darker hover:bg-fantasy-border border border-fantasy-border text-center py-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition flex items-center justify-center space-x-1"
+                    className="bg-white/5 hover:bg-emerald-500/10 border border-white/10 hover:border-emerald-500/40 text-center py-2.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-emerald-200 transition flex items-center justify-center space-x-1.5"
                   >
                     <Box className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Společná truhla</span>
