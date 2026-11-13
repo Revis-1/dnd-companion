@@ -10,7 +10,6 @@ import {
   Shield,
   Zap,
   Moon,
-  Sun,
   AlertTriangle,
   Sparkles,
   ArrowLeft,
@@ -65,16 +64,16 @@ export default function CharacterSheetPage() {
   }, [id]);
 
   if (loading) {
-    return <div className="text-center py-12 text-gray-400">Načítám deník postavy...</div>;
+    return <div className="text-center py-16 text-zinc-400">Načítám deník postavy...</div>;
   }
 
   if (!character) {
     return (
-      <div className="text-center py-12 space-y-4">
+      <div className="text-center py-16 space-y-4">
         <p className="text-red-400">Postava nebyla nalezena.</p>
         <button
           onClick={() => router.push('/vault')}
-          className="text-fantasy-gold hover:underline text-sm"
+          className="text-zinc-300 hover:text-white underline text-sm"
         >
           Zpět do trezoru
         </button>
@@ -155,10 +154,10 @@ export default function CharacterSheetPage() {
   return (
     <div className="py-4 space-y-6 max-w-4xl mx-auto">
       {/* Header Bar */}
-      <div className="flex items-center justify-between border-b border-fantasy-border pb-3">
+      <div className="flex items-center justify-between border-b border-zinc-700/40 pb-3">
         <button
           onClick={() => router.push('/vault')}
-          className="flex items-center space-x-1.5 text-xs text-gray-400 hover:text-white transition"
+          className="flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-white transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Trezor postav</span>
@@ -167,39 +166,43 @@ export default function CharacterSheetPage() {
         <div className="flex space-x-2">
           <button
             onClick={handleLongRest}
-            className="flex items-center space-x-1.5 bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-700/50 text-indigo-200 text-xs px-3 py-1.5 rounded-lg transition"
+            className="flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 border border-zinc-600/40 text-zinc-200 text-xs px-3.5 py-1.5 rounded-xl transition backdrop-blur-sm"
             title="Plně obnoví životy a schopnosti"
           >
-            <Moon className="w-3.5 h-3.5" />
+            <Moon className="w-3.5 h-3.5 text-zinc-400" />
             <span>Long Rest</span>
           </button>
         </div>
       </div>
 
       {/* Hero Character Card */}
-      <div className="tome-page rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-2xl">
-        <div className="w-24 h-24 rounded-2xl bg-[#1a1007] border-2 border-fantasy-gold overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/80">
+      <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-xl">
+        <div className="w-24 h-24 rounded-2xl bg-white/5 border border-zinc-500/30 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg">
           {character.avatar_url ? (
             <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
           ) : (
-            <Shield className="w-12 h-12 text-fantasy-gold" />
+            <Shield className="w-12 h-12 text-zinc-400" />
           )}
         </div>
 
         <div className="flex-1 text-center md:text-left space-y-2">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-            <h1 className="text-3xl font-black text-white tracking-wide">{character.name}</h1>
-            <span className="btn-gold text-xs px-3 py-0.5 rounded-full font-bold">
+            <h1 className="text-3xl font-black text-white tracking-wide font-fantasy">
+              <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+                {character.name}
+              </span>
+            </h1>
+            <span className="bg-white/10 border border-zinc-600 text-zinc-200 text-xs px-3 py-0.5 rounded-full font-bold">
               Úroveň {character.level}
             </span>
           </div>
-          <p className="text-sm text-fantasy-parchment font-medium">
+          <p className="text-sm text-zinc-300 font-medium">
             {character.species} • {character.class_name} {character.subclass && `(${character.subclass})`}
           </p>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-fantasy-parchmentMuted">
-            <span>Původ: <strong className="text-fantasy-parchment">{character.background}</strong></span>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-zinc-400">
+            <span>Původ: <strong className="text-zinc-200">{character.background}</strong></span>
             <span>•</span>
-            <span>Origin Feat: <strong className="text-fantasy-gold">{character.origin_feat}</strong></span>
+            <span>Origin Feat: <strong className="text-zinc-200">{character.origin_feat}</strong></span>
           </div>
         </div>
       </div>
@@ -207,14 +210,14 @@ export default function CharacterSheetPage() {
       {/* HP & Combat Management Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Live HP Box */}
-        <div className="md:col-span-2 tome-page rounded-2xl p-6 space-y-4 shadow-xl">
+        <div className="md:col-span-2 bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 rounded-2xl p-6 space-y-4 shadow-xl">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold uppercase text-gray-300 flex items-center space-x-1.5">
+            <h3 className="text-sm font-bold uppercase text-zinc-300 flex items-center space-x-1.5">
               <Heart className="w-4 h-4 text-red-500 fill-red-500" />
               <span>Životy (HP Bar)</span>
             </h3>
             {character.temp_hp > 0 && (
-              <span className="text-xs bg-blue-950 border border-blue-600/50 text-blue-300 px-2.5 py-0.5 rounded-full font-bold">
+              <span className="text-xs bg-blue-950/50 border border-blue-500/40 text-blue-300 px-2.5 py-0.5 rounded-full font-bold">
                 +{character.temp_hp} Dočasné HP
               </span>
             )}
@@ -224,15 +227,15 @@ export default function CharacterSheetPage() {
           <div className="space-y-1">
             <div className="flex justify-between text-xs font-bold">
               <span className="text-white text-lg">{character.hp_current} / {character.hp_max} HP</span>
-              <span className="text-gray-400">{Math.round(hpPercent)}%</span>
+              <span className="text-zinc-400">{Math.round(hpPercent)}%</span>
             </div>
-            <div className="w-full bg-fantasy-darker rounded-full h-4 overflow-hidden border border-fantasy-border p-0.5">
+            <div className="w-full bg-black/50 rounded-full h-3.5 overflow-hidden border border-zinc-700/40 p-0.5">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   hpPercent > 50
                     ? 'bg-emerald-500'
                     : hpPercent > 20
-                    ? 'bg-amber-500'
+                    ? 'bg-zinc-300'
                     : 'bg-red-600'
                 }`}
                 style={{ width: `${hpPercent}%` }}
@@ -247,35 +250,35 @@ export default function CharacterSheetPage() {
               min="1"
               value={hpInput}
               onChange={(e) => setHpInput(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-20 bg-fantasy-darker border border-fantasy-border rounded-lg text-center py-2 text-white font-bold"
+              className="w-20 bg-black/40 border border-zinc-600/40 rounded-xl text-center py-2 text-white font-bold focus:outline-none focus:border-zinc-400"
             />
             <button
               onClick={handleTakeDamage}
-              className="flex-1 bg-red-950 hover:bg-red-900 border border-red-700/50 text-red-200 font-bold py-2 rounded-lg text-xs transition"
+              className="flex-1 bg-red-950/40 hover:bg-red-900/50 border border-red-500/40 text-red-200 font-bold py-2 rounded-xl text-xs transition"
             >
               [-] Udělit zranění
             </button>
             <button
               onClick={handleHeal}
-              className="flex-1 bg-emerald-950 hover:bg-emerald-900 border border-emerald-700/50 text-emerald-200 font-bold py-2 rounded-lg text-xs transition"
+              className="flex-1 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/40 text-emerald-200 font-bold py-2 rounded-xl text-xs transition"
             >
               [+] Vyléčit HP
             </button>
           </div>
 
           {/* Temp HP setting */}
-          <div className="flex items-center space-x-2 pt-1 border-t border-fantasy-border/50 text-xs">
-            <span className="text-gray-400">Dočasné HP:</span>
+          <div className="flex items-center space-x-2 pt-1 border-t border-zinc-700/30 text-xs">
+            <span className="text-zinc-400">Dočasné HP:</span>
             <input
               type="number"
               min="0"
               value={tempHpInput}
               onChange={(e) => setTempHpInput(Math.max(0, parseInt(e.target.value) || 0))}
-              className="w-16 bg-fantasy-darker border border-fantasy-border rounded text-center py-1 text-white"
+              className="w-16 bg-black/40 border border-zinc-600/40 rounded-lg text-center py-1 text-white focus:outline-none focus:border-zinc-400"
             />
             <button
               onClick={handleSetTempHp}
-              className="bg-fantasy-darker hover:bg-fantasy-border border border-fantasy-border text-blue-300 px-3 py-1 rounded transition"
+              className="bg-white/5 hover:bg-white/10 border border-zinc-600/40 text-zinc-300 px-3 py-1 rounded-lg transition"
             >
               Nastavit Temp HP
             </button>
@@ -283,9 +286,9 @@ export default function CharacterSheetPage() {
         </div>
 
         {/* Death Saves Box */}
-        <div className="tome-page rounded-2xl p-6 space-y-4 shadow-xl">
-          <h3 className="text-sm font-bold uppercase text-gray-300 flex items-center space-x-1.5">
-            <Skull className="w-4 h-4 text-gray-400" />
+        <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 rounded-2xl p-6 space-y-4 shadow-xl">
+          <h3 className="text-sm font-bold uppercase text-zinc-300 flex items-center space-x-1.5">
+            <Skull className="w-4 h-4 text-zinc-400" />
             <span>Záchranné hody (0 HP)</span>
           </h3>
 
@@ -298,10 +301,10 @@ export default function CharacterSheetPage() {
                 {[1, 2, 3].map((num) => (
                   <div
                     key={num}
-                    className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold ${
+                    className={`w-7 h-7 rounded-xl border flex items-center justify-center text-xs font-bold ${
                       num <= character.death_saves.successes
                         ? 'bg-emerald-600 border-emerald-500 text-white'
-                        : 'border-fantasy-border bg-fantasy-darker text-gray-600'
+                        : 'border-zinc-700/50 bg-black/40 text-zinc-600'
                     }`}
                   >
                     ✓
@@ -318,10 +321,10 @@ export default function CharacterSheetPage() {
                 {[1, 2, 3].map((num) => (
                   <div
                     key={num}
-                    className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold ${
+                    className={`w-7 h-7 rounded-xl border flex items-center justify-center text-xs font-bold ${
                       num <= character.death_saves.failures
                         ? 'bg-red-600 border-red-500 text-white'
-                        : 'border-fantasy-border bg-fantasy-darker text-gray-600'
+                        : 'border-zinc-700/50 bg-black/40 text-zinc-600'
                     }`}
                   >
                     ✗
@@ -333,13 +336,13 @@ export default function CharacterSheetPage() {
             <div className="flex space-x-2 pt-2">
               <button
                 onClick={() => handleDeathSave('success')}
-                className="flex-1 bg-emerald-950 hover:bg-emerald-900 border border-emerald-800 text-emerald-300 text-xs py-1.5 rounded transition font-bold"
+                className="flex-1 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-800/50 text-emerald-300 text-xs py-1.5 rounded-lg transition font-bold"
               >
                 + Úspěch
               </button>
               <button
                 onClick={() => handleDeathSave('failure')}
-                className="flex-1 bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 text-xs py-1.5 rounded transition font-bold"
+                className="flex-1 bg-red-950/40 hover:bg-red-900/50 border border-red-800/50 text-red-300 text-xs py-1.5 rounded-lg transition font-bold"
               >
                 + Selhání
               </button>
@@ -356,11 +359,11 @@ export default function CharacterSheetPage() {
           return (
             <div
               key={s}
-              className="tome-page p-3.5 rounded-2xl text-center space-y-1 shadow-lg border border-[#5c3a1b]"
+              className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-3.5 rounded-2xl text-center space-y-1 shadow-md"
             >
-              <span className="text-[11px] font-bold uppercase text-fantasy-gold">{s}</span>
+              <span className="text-[11px] font-bold uppercase text-zinc-400">{s}</span>
               <div className="text-2xl font-black text-white">{val}</div>
-              <div className="text-xs font-bold text-fantasy-goldBright bg-[#170e07] rounded-lg py-1 border border-[#4d2f13] shadow-inner">
+              <div className="text-xs font-bold text-zinc-200 bg-white/5 rounded-lg py-1 border border-zinc-600/40">
                 {formatModifier(mod)}
               </div>
             </div>

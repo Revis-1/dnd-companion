@@ -5,8 +5,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #09090b; /* zinc-950 */
+  --foreground: #f4f4f5; /* zinc-100 */
 }
 
 body {
@@ -17,19 +17,19 @@ body {
   overflow-x: hidden;
 }
 
-/* Epická fantasy typografie pro nadpisy */
+/* Epická fantasy typografie */
 h1, h2, h3, .font-fantasy {
   font-family: 'Cinzel', Georgia, serif;
   letter-spacing: 0.04em;
 }
 
-/* Glassmorphic karty */
-.glass-card {
-  background-color: rgba(0, 0, 0, 0.45);
+/* Neutrální Glassmorphism karty */
+.glass-card-neutral {
+  background-color: rgba(24, 24, 27, 0.5); /* zinc-900/50 */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(113, 113, 122, 0.2); /* zinc-500/20 */
+  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.5);
 }
 
 .glass-card-hover {
@@ -38,60 +38,62 @@ h1, h2, h3, .font-fantasy {
 
 .glass-card-hover:hover {
   transform: scale(1.02) translateY(-4px);
-  border-color: rgba(234, 179, 8, 0.35);
-  box-shadow: 0 0 25px rgba(234, 179, 8, 0.18), 0 20px 40px rgba(0, 0, 0, 0.6);
+  border-color: rgba(161, 161, 170, 0.35);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.07), 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
-/* Gradientová linka */
-.divider-glow {
+/* Neutrální oddělovací linka do ztracena */
+.divider-neutral {
   height: 1px;
   width: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(202, 138, 4, 0.5) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(113, 113, 122, 0.4) 50%, transparent 100%);
 }
 
-/* Tlačítka */
-.btn-gold-glow {
-  background: linear-gradient(135deg, #eab308 0%, #f59e0b 50%, #d97706 100%);
-  color: #020617;
-  font-weight: 800;
+/* Neutrální prémiové hlavní tlačítko */
+.btn-primary-zinc {
+  background-color: #f4f4f5; /* zinc-100 */
+  color: #09090b; /* zinc-950 */
+  font-weight: 700;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-.btn-gold-glow:hover {
+.btn-primary-zinc:hover {
+  background-color: #ffffff;
   transform: scale(1.02) translateY(-2px);
-  box-shadow: 0 0 25px rgba(234, 179, 8, 0.45), 0 8px 20px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15), 0 8px 25px rgba(0, 0, 0, 0.6);
 }
 
-.btn-outline-glass {
-  background-color: rgba(255, 255, 255, 0.05);
+/* Neutrální elegantní outline tlačítko */
+.btn-outline-zinc {
+  background-color: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(234, 179, 8, 0.3);
-  color: rgba(254, 240, 138, 0.9);
+  border: 1px solid #52525b; /* zinc-600 */
+  color: #d4d4d8; /* zinc-300 */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn-outline-glass:hover {
-  background-color: rgba(234, 179, 8, 0.12);
-  border-color: rgba(234, 179, 8, 0.7);
-  color: #fef08a;
+.btn-outline-zinc:hover {
+  background-color: rgba(39, 39, 42, 0.5); /* zinc-800/50 */
+  border-color: #a1a1aa; /* zinc-400 */
+  color: #ffffff;
   transform: scale(1.02) translateY(-2px);
-  box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.06);
 }
 
-/* Moderní tmavý scrollbar */
+/* Decentní neutrální scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: #09090b;
 }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(234, 179, 8, 0.5);
+  background: rgba(255, 255, 255, 0.3);
 }

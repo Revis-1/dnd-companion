@@ -102,20 +102,22 @@ export default function MasterAdminPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-16 text-gray-400">Ověřuji oprávnění Master Admina...</div>;
+    return <div className="text-center py-16 text-zinc-400">Ověřuji oprávnění Master Admina...</div>;
   }
 
   if (!isAdmin) return null;
 
   return (
     <div className="py-6 space-y-8 max-w-5xl mx-auto">
-      <div className="border-b border-fantasy-border pb-4 flex items-center justify-between">
+      <div className="border-b border-zinc-700/40 pb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center space-x-2">
-            <ShieldAlert className="w-6 h-6 text-fantasy-gold" />
-            <span>Master Admin Administrace</span>
+          <h1 className="text-2xl font-black text-white flex items-center space-x-2 font-fantasy">
+            <ShieldAlert className="w-6 h-6 text-red-400" />
+            <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+              Master Admin Administrace
+            </span>
           </h1>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-zinc-400 mt-1">
             Plná správa uživatelů, hesel, kampaní a globálního kompendia.
           </p>
         </div>
@@ -123,10 +125,10 @@ export default function MasterAdminPage() {
 
       {statusMsg && (
         <div
-          className={`p-3 rounded-lg border flex items-center space-x-2 text-xs ${
+          className={`p-3.5 rounded-xl border flex items-center space-x-2 text-xs ${
             statusMsg.type === 'ok'
-              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-              : 'bg-red-950/40 border-red-500/40 text-red-300'
+              ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
+              : 'bg-red-950/40 border-red-500/30 text-red-300'
           }`}
         >
           {statusMsg.type === 'ok' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
@@ -136,25 +138,25 @@ export default function MasterAdminPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Vytvořit nový účet ručně */}
-        <form onSubmit={handleCreateUser} className="bg-fantasy-card border border-fantasy-border p-5 rounded-xl space-y-4">
-          <h3 className="text-sm font-bold uppercase text-fantasy-gold flex items-center space-x-2">
-            <UserPlus className="w-4 h-4" />
+        <form onSubmit={handleCreateUser} className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-6 rounded-2xl space-y-4 shadow-xl">
+          <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 tracking-wider">
+            <UserPlus className="w-4 h-4 text-zinc-300" />
             <span>Založit nový uživatelský účet</span>
           </h3>
           <div className="space-y-3 text-xs">
             <div>
-              <label className="block text-gray-300 mb-1">Jméno účtu (Login) *</label>
+              <label className="block text-zinc-300 mb-1">Jméno účtu (Login) *</label>
               <input
                 type="text"
                 required
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
                 placeholder="např. Revis nebo Honza"
-                className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg px-3 py-2 text-white"
+                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400"
               />
             </div>
             <div>
-              <label className="block text-gray-300 mb-1">Heslo *</label>
+              <label className="block text-zinc-300 mb-1">Heslo *</label>
               <input
                 type="text"
                 required
@@ -162,21 +164,21 @@ export default function MasterAdminPage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Zadejte heslo (min. 6 znaků)"
-                className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg px-3 py-2 text-white"
+                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400"
               />
             </div>
-            <label className="flex items-center space-x-2 text-gray-300 cursor-pointer pt-1">
+            <label className="flex items-center space-x-2 text-zinc-300 cursor-pointer pt-1">
               <input
                 type="checkbox"
                 checked={makeAdmin}
                 onChange={(e) => setMakeAdmin(e.target.checked)}
-                className="rounded bg-fantasy-darker border-fantasy-border"
+                className="rounded bg-black/40 border-zinc-600 text-zinc-200"
               />
               <span>Udělit práva Master Admina</span>
             </label>
             <button
               type="submit"
-              className="w-full bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold py-2 rounded-lg transition"
+              className="w-full btn-primary-zinc py-2.5 rounded-xl text-xs font-bold transition mt-2"
             >
               Vytvořit účet
             </button>
@@ -184,19 +186,19 @@ export default function MasterAdminPage() {
         </form>
 
         {/* Reset hesla uživatele */}
-        <form onSubmit={handleResetPassword} className="bg-fantasy-card border border-fantasy-border p-5 rounded-xl space-y-4">
-          <h3 className="text-sm font-bold uppercase text-fantasy-gold flex items-center space-x-2">
-            <KeyRound className="w-4 h-4" />
+        <form onSubmit={handleResetPassword} className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-6 rounded-2xl space-y-4 shadow-xl">
+          <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 tracking-wider">
+            <KeyRound className="w-4 h-4 text-zinc-300" />
             <span>Změna / Reset hesla hráče</span>
           </h3>
           <div className="space-y-3 text-xs">
             <div>
-              <label className="block text-gray-300 mb-1">Vyberte uživatele *</label>
+              <label className="block text-zinc-300 mb-1">Vyberte uživatele *</label>
               <select
                 required
                 value={resetUserId}
                 onChange={(e) => setResetUserId(e.target.value)}
-                className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg px-3 py-2 text-white"
+                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-zinc-100 focus:outline-none focus:border-zinc-400"
               >
                 <option value="">-- Vyberte účet --</option>
                 {profiles.map((p) => (
@@ -207,7 +209,7 @@ export default function MasterAdminPage() {
               </select>
             </div>
             <div>
-              <label className="block text-gray-300 mb-1">Nové heslo *</label>
+              <label className="block text-zinc-300 mb-1">Nové heslo *</label>
               <input
                 type="text"
                 required
@@ -215,12 +217,12 @@ export default function MasterAdminPage() {
                 value={resetNewPass}
                 onChange={(e) => setResetNewPass(e.target.value)}
                 placeholder="Nové heslo pro hráče"
-                className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg px-3 py-2 text-white"
+                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400"
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-fantasy-darker hover:bg-fantasy-border border border-fantasy-gold/50 text-fantasy-gold font-bold py-2 rounded-lg transition"
+              className="w-full btn-outline-zinc py-2.5 rounded-xl text-xs font-bold transition mt-2"
             >
               Nastavit nové heslo
             </button>
@@ -229,23 +231,23 @@ export default function MasterAdminPage() {
       </div>
 
       {/* Přehled všech účtů */}
-      <div className="bg-fantasy-card border border-fantasy-border p-5 rounded-xl space-y-3">
-        <h3 className="text-sm font-bold uppercase text-white flex items-center space-x-2">
-          <Users className="w-4 h-4 text-fantasy-gold" />
+      <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-6 rounded-2xl space-y-4 shadow-xl">
+        <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 tracking-wider">
+          <Users className="w-4 h-4 text-zinc-300" />
           <span>Registrované účty ({profiles.length})</span>
         </h3>
-        <div className="divide-y divide-fantasy-border text-xs">
+        <div className="divide-y divide-zinc-700/30 text-xs">
           {profiles.map((p) => (
-            <div key={p.id} className="py-2.5 flex items-center justify-between">
+            <div key={p.id} className="py-3 flex items-center justify-between">
               <div>
-                <span className="font-bold text-white text-sm">{p.username}</span>
+                <span className="font-bold text-white text-sm font-fantasy">{p.username}</span>
                 {p.is_master_admin && (
-                  <span className="ml-2 text-[10px] bg-fantasy-gold text-black font-bold px-2 py-0.5 rounded">
+                  <span className="ml-2 text-[10px] bg-red-950/40 border border-red-500/30 text-red-300 font-bold px-2 py-0.5 rounded-md">
                     MASTER ADMIN
                   </span>
                 )}
               </div>
-              <span className="text-gray-500">ID: {p.id.slice(0, 8)}...</span>
+              <span className="text-zinc-500 font-mono text-[11px]">ID: {p.id.slice(0, 8)}...</span>
             </div>
           ))}
         </div>

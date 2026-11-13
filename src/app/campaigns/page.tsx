@@ -79,22 +79,22 @@ export default function CampaignsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
         <div>
           <h2 className="text-3xl font-black text-white flex items-center space-x-2 font-fantasy">
-            <span className="bg-gradient-to-r from-yellow-500 via-amber-300 to-amber-100 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
               Kampaně a Družiny
             </span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-zinc-400 mt-1">
             Správa herních stolů a generování unikátních zvacích odkazů pro vaše hráče.
           </p>
         </div>
       </div>
 
-      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-yellow-600/50 to-transparent" />
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-zinc-600/40 to-transparent" />
 
       {/* Vytvoření nové kampaně */}
-      <form onSubmit={handleCreateCampaign} className="bg-black/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl space-y-4 shadow-xl">
-        <h4 className="text-xs font-bold text-yellow-400 uppercase tracking-wider flex items-center space-x-1.5">
-          <Plus className="w-4 h-4" />
+      <form onSubmit={handleCreateCampaign} className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-6 rounded-2xl space-y-4 shadow-xl">
+        <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center space-x-1.5">
+          <Plus className="w-4 h-4 text-zinc-400" />
           <span>Založit novou kampaň (Dungeon Master)</span>
         </h4>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -104,12 +104,12 @@ export default function CampaignsPage() {
             value={newCampName}
             onChange={(e) => setNewCampName(e.target.value)}
             placeholder="Název kampaně (např. Prokletí Strahda nebo Ztracený důl)"
-            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-500/60 transition-colors"
+            className="flex-1 bg-black/40 border border-zinc-600/40 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400 transition-colors"
           />
           <button
             type="submit"
             disabled={creating}
-            className="btn-gold-glow px-6 py-3 rounded-xl text-xs font-bold transition disabled:opacity-50"
+            className="btn-primary-zinc px-6 py-3 rounded-xl text-xs font-bold transition disabled:opacity-50"
           >
             {creating ? 'Zakládám...' : 'Vytvořit kampaň'}
           </button>
@@ -118,17 +118,17 @@ export default function CampaignsPage() {
 
       {/* Seznam kampaní */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider font-fantasy">
+        <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider font-fantasy">
           Aktivní kampaně ({campaigns.length})
         </h3>
 
         {loading ? (
-          <div className="text-center py-16 text-slate-400">Načítám kampaně...</div>
+          <div className="text-center py-16 text-zinc-400">Načítám kampaně...</div>
         ) : campaigns.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 space-y-2">
-            <Users className="w-10 h-10 mx-auto text-slate-600" />
-            <p className="text-sm text-slate-300">Zatím nemáte vytvořenou žádnou kampaň.</p>
-            <p className="text-xs text-slate-500">
+          <div className="p-12 text-center text-zinc-500 bg-zinc-900/30 backdrop-blur-md rounded-2xl border border-zinc-500/20 space-y-2">
+            <Users className="w-10 h-10 mx-auto text-zinc-600" />
+            <p className="text-sm text-zinc-300">Zatím nemáte vytvořenou žádnou kampaň.</p>
+            <p className="text-xs text-zinc-500">
               Založte kampaň formulářem výše a získáte unikátní zvací odkaz pro hráče.
             </p>
           </div>
@@ -137,20 +137,20 @@ export default function CampaignsPage() {
             {campaigns.map((camp) => (
               <div
                 key={camp.id}
-                className="bg-black/40 backdrop-blur-md border border-white/10 hover:border-yellow-500/30 rounded-2xl p-6 space-y-5 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] flex flex-col justify-between group"
+                className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 hover:border-zinc-400/40 rounded-2xl p-6 space-y-5 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,255,255,0.07)] flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-bold text-white text-lg font-fantasy group-hover:text-yellow-300 transition-colors">
+                      <h4 className="font-bold text-white text-lg font-fantasy group-hover:text-zinc-200 transition-colors">
                         {camp.name}
                       </h4>
-                      <span className="text-[11px] text-slate-400">
-                        Zvací kód: <strong className="text-yellow-400 font-mono">{camp.invite_code}</strong>
+                      <span className="text-[11px] text-zinc-400">
+                        Zvací kód: <strong className="text-zinc-200 font-mono">{camp.invite_code}</strong>
                       </span>
                     </div>
                     {user && camp.dm_id === user.id && (
-                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-red-950/40 border border-red-500/40 text-red-300">
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-red-950/40 border border-red-500/30 text-red-300">
                         DM
                       </span>
                     )}
@@ -158,13 +158,13 @@ export default function CampaignsPage() {
                 </div>
 
                 {/* Zvací odkaz button */}
-                <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex items-center justify-between text-xs">
-                  <span className="text-slate-400 truncate pr-2 font-mono text-[11px]">
+                <div className="bg-black/50 border border-zinc-600/40 p-3 rounded-xl flex items-center justify-between text-xs">
+                  <span className="text-zinc-400 truncate pr-2 font-mono text-[11px]">
                     /join/{camp.invite_code}
                   </span>
                   <button
                     onClick={() => copyInvite(camp.invite_code, camp.id)}
-                    className="flex items-center space-x-1 text-yellow-400 hover:text-yellow-200 transition font-semibold flex-shrink-0"
+                    className="flex items-center space-x-1 text-zinc-200 hover:text-white transition font-semibold flex-shrink-0"
                   >
                     {copiedId === camp.id ? (
                       <>
@@ -181,19 +181,19 @@ export default function CampaignsPage() {
                 </div>
 
                 {/* Akce */}
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-700/30">
                   <Link
                     href={`/campaign/${camp.id}/dm`}
-                    className="bg-white/5 hover:bg-yellow-500/10 border border-white/10 hover:border-yellow-500/40 text-center py-2.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-yellow-200 transition flex items-center justify-center space-x-1.5"
+                    className="bg-white/5 hover:bg-white/10 border border-zinc-600/40 hover:border-zinc-400 text-center py-2.5 rounded-xl text-xs font-semibold text-zinc-200 hover:text-white transition flex items-center justify-center space-x-1.5"
                   >
-                    <Shield className="w-3.5 h-3.5 text-yellow-400" />
+                    <Shield className="w-3.5 h-3.5 text-zinc-400" />
                     <span>DM Dashboard</span>
                   </Link>
                   <Link
                     href={`/campaign/${camp.id}/loot`}
-                    className="bg-white/5 hover:bg-emerald-500/10 border border-white/10 hover:border-emerald-500/40 text-center py-2.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-emerald-200 transition flex items-center justify-center space-x-1.5"
+                    className="bg-white/5 hover:bg-white/10 border border-zinc-600/40 hover:border-zinc-400 text-center py-2.5 rounded-xl text-xs font-semibold text-zinc-200 hover:text-white transition flex items-center justify-center space-x-1.5"
                   >
-                    <Box className="w-3.5 h-3.5 text-emerald-400" />
+                    <Box className="w-3.5 h-3.5 text-zinc-400" />
                     <span>Společná truhla</span>
                   </Link>
                 </div>

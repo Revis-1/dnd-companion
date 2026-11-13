@@ -14,17 +14,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="cs" className="dark">
-      <body className="bg-slate-950 text-slate-100 antialiased min-h-screen relative flex flex-col selection:bg-yellow-500/20 selection:text-yellow-200">
-        {/* Příprava na pozadí: Základní temně modrá / obsidiánová barva + overlay pro budoucí bg-image */}
+      <body className="bg-zinc-950 text-zinc-100 antialiased min-h-screen relative flex flex-col selection:bg-zinc-700 selection:text-white">
+        {/* Příprava na pozadí: Vrstva pro obrázek kreslené mapy */}
         <div 
-          className="fixed inset-0 -z-20 bg-slate-950 bg-cover bg-center bg-no-repeat bg-fixed"
+          className="fixed inset-0 -z-20 bg-zinc-950 bg-cover bg-center bg-no-repeat bg-fixed"
           id="custom-background-layer"
         />
-        {/* Tmavý radiální overlay zachovávající perfektní čitelnost */}
-        <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-slate-950/80 to-black pointer-events-none" />
-        <div className="fixed inset-0 -z-10 bg-black/60 pointer-events-none" />
+        {/* Overlay vrstva, která mapu lehce ztlumí a rozostří pro perfektní čitelnost */}
+        <div className="fixed inset-0 -z-10 bg-zinc-950/70 backdrop-blur-sm pointer-events-none" />
 
-        {/* Hlavní obsah a navigace */}
+        {/* Hlavní navigace a obsah */}
         <Navbar />
         <main className="relative z-10 flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-8">
           {children}

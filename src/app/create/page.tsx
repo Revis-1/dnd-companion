@@ -112,29 +112,31 @@ export default function CreateCharacterPage() {
   return (
     <div className="max-w-3xl mx-auto py-6 space-y-6">
       {/* Wizard Step Indicator */}
-      <div className="flex items-center justify-between border-b border-fantasy-border pb-4">
+      <div className="flex items-center justify-between border-b border-zinc-700/40 pb-4">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-fantasy-gold" />
-            <span>Tvorba postavy (D&D 2024)</span>
+          <h2 className="text-2xl font-black text-white flex items-center space-x-2 font-fantasy">
+            <Sparkles className="w-5 h-5 text-zinc-300" />
+            <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+              Tvorba postavy (D&D 2024)
+            </span>
           </h2>
-          <p className="text-xs text-gray-400">Krok {step} z 5: {
+          <p className="text-xs text-zinc-400 mt-1">Krok {step} z 5: {
             step === 1 ? 'Volba rasy (Species)' :
             step === 2 ? 'Volba povolání (Class)' :
             step === 3 ? 'Původ & Origin Feat (Background)' :
             step === 4 ? 'Vlastnosti & Bonusy (Stats)' : 'Vzhled & Jméno postavy'
           }</p>
         </div>
-        <div className="flex space-x-1">
+        <div className="flex space-x-1.5">
           {[1, 2, 3, 4, 5].map((s) => (
             <div
               key={s}
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+              className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                 s === step
-                  ? 'bg-fantasy-gold text-black'
+                  ? 'bg-zinc-100 text-zinc-950 shadow-md scale-105'
                   : s < step
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-fantasy-card text-gray-400 border border-fantasy-border'
+                  ? 'bg-zinc-800 text-zinc-300 border border-zinc-600'
+                  : 'bg-black/40 text-zinc-500 border border-zinc-700/30'
               }`}
             >
               {s < step ? <Check className="w-3.5 h-3.5" /> : s}
@@ -146,7 +148,7 @@ export default function CreateCharacterPage() {
       {/* Step 1: Species */}
       {step === 1 && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-zinc-300">
             Vyberte si rasu postavy z oficiálních pravidel D&D 2024:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -154,19 +156,19 @@ export default function CreateCharacterPage() {
               <div
                 key={sp.name}
                 onClick={() => setSelectedSpecies(sp)}
-                className={`p-4 rounded-xl border cursor-pointer transition ${
+                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
                   selectedSpecies.name === sp.name
-                    ? 'border-fantasy-gold bg-fantasy-gold/10'
-                    : 'border-fantasy-border bg-fantasy-card hover:border-gray-500'
+                    ? 'border-zinc-300 bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
+                    : 'border-zinc-500/20 bg-zinc-900/50 hover:border-zinc-400/40 hover:bg-zinc-800/40'
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold text-white">{sp.name}</h4>
-                  <span className="text-xs px-2 py-0.5 rounded bg-fantasy-darker border border-fantasy-border text-gray-300">
+                  <h4 className="font-bold text-white font-fantasy">{sp.name}</h4>
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-black/40 border border-zinc-600 text-zinc-300">
                     {sp.speed} ft
                   </span>
                 </div>
-                <ul className="text-xs text-gray-400 space-y-0.5 mt-2">
+                <ul className="text-xs text-zinc-400 space-y-0.5 mt-2">
                   {sp.traits.slice(0, 2).map((t, idx) => (
                     <li key={idx}>• {t}</li>
                   ))}
@@ -180,7 +182,7 @@ export default function CreateCharacterPage() {
       {/* Step 2: Class */}
       {step === 2 && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-zinc-300">
             Vyberte si povolání (povolání určuje Kostku životů a klíčové vlastnosti):
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -188,22 +190,22 @@ export default function CreateCharacterPage() {
               <div
                 key={cls.name}
                 onClick={() => setSelectedClass(cls)}
-                className={`p-4 rounded-xl border cursor-pointer transition ${
+                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
                   selectedClass.name === cls.name
-                    ? 'border-fantasy-gold bg-fantasy-gold/10'
-                    : 'border-fantasy-border bg-fantasy-card hover:border-gray-500'
+                    ? 'border-zinc-300 bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
+                    : 'border-zinc-500/20 bg-zinc-900/50 hover:border-zinc-400/40 hover:bg-zinc-800/40'
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold text-white">{cls.name}</h4>
-                  <span className="text-xs px-2 py-0.5 rounded bg-fantasy-crimson/30 border border-fantasy-crimson text-red-200">
+                  <h4 className="font-bold text-white font-fantasy">{cls.name}</h4>
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-red-950/40 border border-red-500/30 text-red-300">
                     k{cls.hitDie} Hit Die
                   </span>
                 </div>
-                <p className="text-xs text-gray-400">
-                  Hlavní vlastnost: <strong className="text-fantasy-parchment">{cls.primaryStat}</strong>
+                <p className="text-xs text-zinc-300">
+                  Hlavní vlastnost: <strong className="text-white">{cls.primaryStat}</strong>
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-zinc-400 mt-1">
                   Záchranné hody: {cls.savingThrows.join(', ')}
                 </p>
               </div>
@@ -215,7 +217,7 @@ export default function CreateCharacterPage() {
       {/* Step 3: Background */}
       {step === 3 && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-zinc-300">
             V pravidlech 2024 definuje bonusy k vlastnostem a Origin Feat váš <strong>Původ (Background)</strong>:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
@@ -223,21 +225,21 @@ export default function CreateCharacterPage() {
               <div
                 key={bg.name}
                 onClick={() => setSelectedBackground(bg)}
-                className={`p-4 rounded-xl border cursor-pointer transition ${
+                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 backdrop-blur-md ${
                   selectedBackground.name === bg.name
-                    ? 'border-fantasy-gold bg-fantasy-gold/10'
-                    : 'border-fantasy-border bg-fantasy-card hover:border-gray-500'
+                    ? 'border-zinc-300 bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
+                    : 'border-zinc-500/20 bg-zinc-900/50 hover:border-zinc-400/40 hover:bg-zinc-800/40'
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold text-white">{bg.name}</h4>
+                  <h4 className="font-bold text-white font-fantasy">{bg.name}</h4>
                 </div>
-                <p className="text-xs text-gray-400 mb-2">{bg.description}</p>
+                <p className="text-xs text-zinc-400 mb-2">{bg.description}</p>
                 <div className="text-xs space-y-1">
-                  <p className="text-fantasy-gold">
-                    Origin Feat: <strong>{bg.originFeat}</strong>
+                  <p className="text-zinc-200">
+                    Origin Feat: <strong className="text-white">{bg.originFeat}</strong>
                   </p>
-                  <p className="text-gray-400">
+                  <p className="text-zinc-400">
                     Bonusy pro: {bg.statOptions.join(', ')}
                   </p>
                 </div>
@@ -250,7 +252,7 @@ export default function CreateCharacterPage() {
       {/* Step 4: Stats */}
       {step === 4 && (
         <div className="space-y-5">
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-zinc-300">
             Rozdělení vlastností (Standard Array 15, 14, 13, 12, 10, 8) + bonusy z původu:
           </p>
 
@@ -260,10 +262,10 @@ export default function CreateCharacterPage() {
               const final = finalStats[s];
               const mod = calculateModifier(final);
               return (
-                <div key={s} className="bg-fantasy-card border border-fantasy-border p-3 rounded-xl text-center space-y-1">
-                  <span className="text-xs font-bold uppercase text-gray-400">{s}</span>
+                <div key={s} className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-3.5 rounded-2xl text-center space-y-1">
+                  <span className="text-xs font-bold uppercase text-zinc-400">{s}</span>
                   <div className="text-2xl font-black text-white">{final}</div>
-                  <div className="text-xs font-bold text-fantasy-gold">Modifikátor: {formatModifier(mod)}</div>
+                  <div className="text-xs font-bold text-zinc-300">Modifikátor: {formatModifier(mod)}</div>
                   <input
                     type="number"
                     min="3"
@@ -272,24 +274,24 @@ export default function CreateCharacterPage() {
                     onChange={(e) =>
                       setBaseStats({ ...baseStats, [s]: parseInt(e.target.value) || 10 })
                     }
-                    className="w-16 mx-auto bg-fantasy-darker border border-fantasy-border rounded text-center text-xs py-1 text-white"
+                    className="w-16 mx-auto bg-black/40 border border-zinc-600/40 rounded-lg text-center text-xs py-1 text-white focus:outline-none focus:border-zinc-400"
                   />
                 </div>
               );
             })}
           </div>
 
-          <div className="bg-fantasy-card/70 border border-fantasy-border p-4 rounded-xl space-y-3">
-            <h4 className="text-xs font-bold uppercase text-fantasy-gold">
+          <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-4 rounded-2xl space-y-3">
+            <h4 className="text-xs font-bold uppercase text-zinc-200 tracking-wider">
               Bonusy z původu ({selectedBackground.name})
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-gray-300 mb-1">+2 Bonus k vlastnosti:</label>
+                <label className="block text-zinc-300 mb-1">+2 Bonus k vlastnosti:</label>
                 <select
                   value={statPlus2}
                   onChange={(e) => setStatPlus2(e.target.value)}
-                  className="w-full bg-fantasy-darker border border-fantasy-border rounded p-2 text-white"
+                  className="w-full bg-black/40 border border-zinc-600/40 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-zinc-400"
                 >
                   {selectedBackground.statOptions.map((opt) => (
                     <option key={opt} value={opt.toLowerCase()}>{opt}</option>
@@ -297,11 +299,11 @@ export default function CreateCharacterPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-300 mb-1">+1 Bonus k vlastnosti:</label>
+                <label className="block text-zinc-300 mb-1">+1 Bonus k vlastnosti:</label>
                 <select
                   value={statPlus1}
                   onChange={(e) => setStatPlus1(e.target.value)}
-                  className="w-full bg-fantasy-darker border border-fantasy-border rounded p-2 text-white"
+                  className="w-full bg-black/40 border border-zinc-600/40 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-zinc-400"
                 >
                   {selectedBackground.statOptions.map((opt) => (
                     <option key={opt} value={opt.toLowerCase()}>{opt}</option>
@@ -309,8 +311,8 @@ export default function CreateCharacterPage() {
                 </select>
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-xs text-emerald-400 pt-1">
-              <Heart className="w-4 h-4" />
+            <div className="flex items-center space-x-2 text-xs text-red-300 pt-1 font-semibold">
+              <Heart className="w-4 h-4 fill-red-400 text-red-400" />
               <span>Počáteční životy (1. úroveň): <strong>{startingHp} HP</strong></span>
             </div>
           </div>
@@ -320,12 +322,12 @@ export default function CreateCharacterPage() {
       {/* Step 5: Visuals & Name */}
       {step === 5 && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-zinc-300">
             Pojmenujte svou postavu a vložte obrázek (nebo ponechte výchozí siluetu):
           </p>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
               Jméno hrdiny *
             </label>
             <input
@@ -334,12 +336,12 @@ export default function CreateCharacterPage() {
               value={charName}
               onChange={(e) => setCharName(e.target.value)}
               placeholder="např. Thorgar Železná Pěst"
-              className="w-full bg-fantasy-card border border-fantasy-border rounded-lg px-4 py-2.5 text-white font-medium focus:outline-none focus:border-fantasy-gold"
+              className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-4 py-2.5 text-white font-medium focus:outline-none focus:border-zinc-400"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
               URL obrázku avatara (volitelné)
             </label>
             <input
@@ -347,40 +349,40 @@ export default function CreateCharacterPage() {
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
               placeholder="https://... (odkaz na obrázek nebo nechte prázdné)"
-              className="w-full bg-fantasy-card border border-fantasy-border rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-fantasy-gold"
+              className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400"
             />
           </div>
 
           {/* Character summary card */}
-          <div className="bg-fantasy-card border border-fantasy-border p-4 rounded-xl flex items-center space-x-4 mt-4">
-            <div className="w-16 h-16 rounded-full bg-fantasy-darker border border-fantasy-gold/50 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-4 rounded-2xl flex items-center space-x-4 mt-4">
+            <div className="w-16 h-16 rounded-xl bg-white/5 border border-zinc-500/20 flex items-center justify-center overflow-hidden flex-shrink-0">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <Shield className="w-8 h-8 text-fantasy-gold" />
+                <Shield className="w-8 h-8 text-zinc-300" />
               )}
             </div>
             <div className="text-xs space-y-1">
-              <h4 className="text-base font-bold text-white">{charName || 'Bezejmenný hrdina'}</h4>
-              <p className="text-gray-400">
+              <h4 className="text-base font-bold text-white font-fantasy">{charName || 'Bezejmenný hrdina'}</h4>
+              <p className="text-zinc-400">
                 {selectedSpecies.name} • {selectedClass.name} (Úroveň 1)
               </p>
-              <p className="text-fantasy-gold">
+              <p className="text-zinc-300">
                 Původ: {selectedBackground.name} ({selectedBackground.originFeat})
               </p>
-              <p className="text-emerald-400 font-semibold">Životy: {startingHp} HP</p>
+              <p className="text-red-300 font-semibold">Životy: {startingHp} HP</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-5 border-t border-[#4d3119]">
+      <div className="flex justify-between items-center pt-5 border-t border-zinc-700/40">
         {step > 1 ? (
           <button
             type="button"
             onClick={() => setStep(step - 1)}
-            className="flex items-center space-x-1.5 px-5 py-2.5 rounded-xl bg-[#21140a] border border-[#5a3818] text-fantasy-parchment hover:text-white transition text-xs font-bold"
+            className="btn-outline-zinc flex items-center space-x-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Zpět</span>
@@ -393,7 +395,7 @@ export default function CreateCharacterPage() {
           <button
             type="button"
             onClick={() => setStep(step + 1)}
-            className="btn-gold flex items-center space-x-1.5 px-6 py-2.5 rounded-xl text-xs font-black shadow-lg"
+            className="btn-primary-zinc flex items-center space-x-1.5 px-6 py-2.5 rounded-xl text-xs font-bold"
           >
             <span>Pokračovat</span>
             <ArrowRight className="w-4 h-4" />
@@ -403,7 +405,7 @@ export default function CreateCharacterPage() {
             type="button"
             disabled={saving || !charName.trim()}
             onClick={handleFinish}
-            className="flex items-center space-x-1.5 px-7 py-3 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white font-bold transition text-xs shadow-lg shadow-emerald-950/60 disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-7 py-3 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-bold transition text-xs shadow-lg disabled:opacity-50"
           >
             <Check className="w-4 h-4" />
             <span>{saving ? 'Ukládám...' : 'Dokončit a uložit postavu'}</span>

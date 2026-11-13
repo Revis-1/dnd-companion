@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase, usernameToEmail } from '@/lib/supabase/client';
 import { Campaign, Character } from '@/types/database';
-import { Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, AlertCircle, Shield } from 'lucide-react';
 
 export default function JoinCampaignPage() {
   const { inviteCode } = useParams();
@@ -17,7 +17,7 @@ export default function JoinCampaignPage() {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
 
-  // Formulář pro registraci / přihlášení pozvaného hráče (pouze Jméno + Heslo)
+  // Formulář pro registraci / přihlášení pozvaného hráče
   const [authMode, setAuthMode] = useState<'register' | 'login'>('register');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -64,7 +64,6 @@ export default function JoinCampaignPage() {
           throw new Error('Heslo musí mít alespoň 6 znaků.');
         }
 
-        // Zavoláme databázovou funkci, která vytvoří účet rovnou aktivovaný (bez nutnosti potvrzovat e-mail)
         const { error: rpcErr } = await supabase.rpc('register_player_with_invite', {
           p_username: username.trim(),
           p_email: internalEmail,
@@ -74,7 +73,6 @@ export default function JoinCampaignPage() {
 
         if (rpcErr) throw rpcErr;
 
-        // Okamžitě hráče přihlásíme
         const { error: signInErr } = await supabase.auth.signInWithPassword({
           email: internalEmail,
           password,
@@ -120,19 +118,19 @@ export default function JoinCampaignPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-16 text-gray-400">Ověřuji zvací odkaz...</div>;
+    return <div className="text-center py-16 text-zinc-400">Ověřuji zvací odkaz...</div>;
   }
 
   if (!campaign) {
     return (
-      <div className="max-w-md mx-auto my-12 bg-fantasy-card border border-red-500/40 p-8 rounded-xl text-center space-y-4">
-        <h2 className="text-xl font-bold text-red-400">Neplatná pozvánka</h2>
-        <p className="text-xs text-gray-400">
+      <div className="max-w-md mx-auto my-12 bg-zinc-900/50 backdrop-blur-md border border-red-500/30 p-8 rounded-2xl text-center space-y-4">
+        <h2 className="text-xl font-bold text-red-400 font-fantasy">Neplatná pozvánka</h2>
+        <p className="text-xs text-zinc-400">
           Zvací odkaz neexistuje nebo již vypršel. Registrace je možná pouze s platnou pozvánkou od vašeho Pána jeskyně.
         </p>
         <button
           onClick={() => router.push('/login')}
-          className="text-xs text-fantasy-gold hover:underline"
+          className="text-xs text-zinc-300 hover:text-white underline"
         >
           Přejít na přihlášení
         </button>
@@ -141,19 +139,25 @@ export default function JoinCampaignPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto my-10 bg-fantasy-card border border-fantasy-border p-8 rounded-2xl shadow-2xl space-y-6">
+    <div className="max-w-md mx-auto my-10 bg-zinc-900/50 backdrop-blur-md border border-zinc-500/20 p-8 rounded-2xl shadow-2xl space-y-6">
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-fantasy-gold/10 border border-fantasy-gold/30 text-fantasy-gold mx-auto">
-          <Sparkles className="w-6 h-6" />
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/5 border border-zinc-500/20 text-zinc-300 mx-auto shadow-inner">
+          <Sparkles className="w-6 h-6 text-zinc-300" />
         </div>
-        <h2 className="text-2xl font-bold text-white">Pozvánka do družiny</h2>
-        <p className="text-sm text-gray-300">
-          Kampaň: <span className="text-fantasy-gold font-bold">{campaign.name}</span>
+        <h2 className="text-2xl font-black text-white font-fantasy tracking-wide">
+          <span className="bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+            Pozvánka do družiny
+          </span>
+        </h2>
+        <p className="text-sm text-zinc-300">
+          Kampaň: <span className="text-white font-bold">{campaign.name}</span>
         </p>
       </div>
 
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-zinc-600/40 to-transparent" />
+
       {authError && (
-        <div className="p-3 bg-red-900/30 border border-red-500/40 rounded-lg flex items-center space-x-2 text-red-300 text-xs">
+        <div className="p-3 bg-red-900/30 border border-red-500/40 rounded-xl flex items-center space-x-2 text-red-300 text-xs">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{authError}</span>
         </div>
@@ -161,13 +165,13 @@ export default function JoinCampaignPage() {
 
       {!user ? (
         <div className="space-y-4">
-          <div className="flex border-b border-fantasy-border">
+          <div className="flex border-b border-zinc-700/40">
             <button
               onClick={() => setAuthMode('register')}
               className={`flex-1 py-2 text-xs font-bold transition border-b-2 ${
                 authMode === 'register'
-                  ? 'border-fantasy-gold text-fantasy-gold'
-                  : 'border-transparent text-gray-400 hover:text-white'
+                  ? 'border-zinc-200 text-white'
+                  : 'border-transparent text-zinc-400 hover:text-zinc-200'
               }`}
             >
               Nový hráč (Zaregistrovat)
@@ -176,8 +180,8 @@ export default function JoinCampaignPage() {
               onClick={() => setAuthMode('login')}
               className={`flex-1 py-2 text-xs font-bold transition border-b-2 ${
                 authMode === 'login'
-                  ? 'border-fantasy-gold text-fantasy-gold'
-                  : 'border-transparent text-gray-400 hover:text-white'
+                  ? 'border-zinc-200 text-white'
+                  : 'border-transparent text-zinc-400 hover:text-zinc-200'
               }`}
             >
               Už mám účet (Přihlásit)
@@ -186,7 +190,7 @@ export default function JoinCampaignPage() {
 
           <form onSubmit={handleAuthSubmit} className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
                 Jméno účtu / Přezdívka *
               </label>
               <input
@@ -195,12 +199,12 @@ export default function JoinCampaignPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="např. Martin nebo Aragorn"
-                className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg px-3 py-2 text-sm text-white"
+                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
                 Heslo (min. 6 znaků) *
               </label>
               <input
@@ -210,14 +214,14 @@ export default function JoinCampaignPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg px-3 py-2 text-sm text-white"
+                className="w-full bg-black/40 border border-zinc-600/40 rounded-xl px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400 transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold py-2.5 rounded-lg transition disabled:opacity-50 text-sm mt-2"
+              className="w-full btn-primary-zinc py-3 rounded-xl transition disabled:opacity-50 text-sm font-bold mt-2"
             >
               {authLoading
                 ? 'Vstupuji do hry...'
@@ -228,7 +232,7 @@ export default function JoinCampaignPage() {
           </form>
         </div>
       ) : (
-        <div className="space-y-4 text-xs text-gray-300">
+        <div className="space-y-4 text-xs text-zinc-300">
           <p>Vyberte postavu ze svého trezoru, se kterou vstoupíte do kampaně:</p>
 
           {characters.length > 0 ? (
@@ -236,7 +240,7 @@ export default function JoinCampaignPage() {
               <select
                 value={selectedCharId}
                 onChange={(e) => setSelectedCharId(e.target.value)}
-                className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg p-2.5 text-white"
+                className="w-full bg-black/50 border border-zinc-600/40 rounded-xl p-3 text-zinc-100 focus:outline-none focus:border-zinc-400"
               >
                 <option value="">Zatím nevybrat (připojit se bez postavy)</option>
                 {characters.map((c) => (
@@ -247,7 +251,7 @@ export default function JoinCampaignPage() {
               </select>
             </div>
           ) : (
-            <div className="p-3 bg-fantasy-darker rounded-lg border border-fantasy-border text-gray-400">
+            <div className="p-3 bg-black/40 rounded-xl border border-zinc-700/30 text-zinc-400">
               V trezoru zatím nemáte volnou postavu. Po vstupu do kampaně si vytvoříte novou.
             </div>
           )}
@@ -255,10 +259,10 @@ export default function JoinCampaignPage() {
           <button
             onClick={handleJoinLoggedUser}
             disabled={joining}
-            className="w-full bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold py-2.5 rounded-lg transition flex items-center justify-center space-x-2"
+            className="w-full btn-primary-zinc py-3 rounded-xl transition flex items-center justify-center space-x-2 font-bold"
           >
             <span>{joining ? 'Připojuji...' : 'Vstoupit do kampaně'}</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 text-zinc-950" />
           </button>
         </div>
       )}
