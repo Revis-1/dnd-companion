@@ -70,6 +70,7 @@ export default function CreateCharacterPage() {
   const [saving, setSaving] = useState(false);
 
   const [selectedSpecies, setSelectedSpecies] = useState(SPECIES_2024[0]);
+  const [selectedLineage, setSelectedLineage] = useState<string>('');
   const [selectedClass, setSelectedClass] = useState(CLASSES_2024[0]);
   const [selectedBackground, setSelectedBackground] = useState(BACKGROUNDS_2024[0]);
   const [subclass] = useState<string>('');
@@ -100,6 +101,14 @@ export default function CreateCharacterPage() {
   }, [router]);
 
   useEffect(() => {
+    if (selectedSpecies.lineages && selectedSpecies.lineages.length > 0) {
+      setSelectedLineage(selectedSpecies.lineages[0].name);
+    } else {
+      setSelectedLineage('');
+    }
+  }, [selectedSpecies]);
+
+  useEffect(() => {
     if (selectedBackground.statOptions.length >= 2) {
       setStatPlus2(selectedBackground.statOptions[0].toLowerCase());
       setStatPlus1(selectedBackground.statOptions[1].toLowerCase());
@@ -116,7 +125,12 @@ export default function CreateCharacterPage() {
   };
 
   const conMod = calculateModifier(finalStats.con);
-  const startingHp = selectedClass.hitDie + conMod;
+  const dwarfBonusHp = selectedSpecies.name === 'Dwarf' ? 1 : 0;
+  const toughBonusHp = selectedBackground.originFeat === 'Tough' ? 2 : 0;
+  const startingHp = selectedClass.hitDie + conMod + dwarfBonusHp + toughBonusHp;
+  const fullSpeciesName = selectedLineage
+    ? `${selectedSpecies.name} (${selectedLineage})`
+    : selectedSpecies.name;
 
   const handleFinish = async () => {
     if (!user || !charName.trim()) return;
@@ -127,7 +141,7 @@ export default function CreateCharacterPage() {
         {
           user_id: user.id,
           name: charName.trim(),
-          species: selectedSpecies.name,
+          species: fullSpeciesName,
           class_name: selectedClass.name,
           subclass: subclass || null,
           level: 1,
@@ -190,13 +204,19 @@ export default function CreateCharacterPage() {
 
       {/* Step 1: Species */}
       {step === 1 && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-sm text-zinc-300">
             Vyberte si rasu postavy z oficiálních pravidel D&D 2024:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {SPECIES_2024.map((sp) => {
               const glow = SPECIES_GLOW[sp.name] || { primary: '244, 244, 245', secondary: '161, 161, 170' };
+              const activeLineageObj =
+                selectedSpecies.name === sp.name && sp.lineages
+                  ? sp.lineages.find((l) => l.name === selectedLineage)
+                  : undefined;
+              const displaySpeed = activeLineageObj?.speedOverride || sp.speed;
+
               return (
                 <MagicCard
                   key={sp.name}
@@ -207,9 +227,16 @@ export default function CreateCharacterPage() {
                   className="p-4"
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <h4 className="font-bold text-white font-fantasy">{sp.name}</h4>
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-bold text-white font-fantasy">{sp.name}</h4>
+                      {sp.lineages && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-400">
+                          {sp.lineages.length} linie
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-zinc-300">
-                      {sp.speed} ft
+                      {displaySpeed} ft
                     </span>
                   </div>
                   <ul className="text-xs text-zinc-400 space-y-0.5 mt-2">
@@ -221,6 +248,48 @@ export default function CreateCharacterPage() {
               );
             })}
           </div>
+
+          {/* Volba podrasy / rodové linie (Lineage / Ancestry) pro vybranou rasu */}
+          {selectedSpecies.lineages && selectedSpecies.lineages.length > 0 && (
+            <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-200 font-fantasy">
+                  {selectedSpecies.lineageLabel || `Zvolte rodovou linii (${selectedSpecies.name})`}
+                </h4>
+                <span className="text-xs text-zinc-400">
+                  Vybráno: <strong className="text-white">{selectedLineage}</strong>
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {selectedSpecies.lineages.map((lin) => {
+                  const glow = SPECIES_GLOW[selectedSpecies.name] || {
+                    primary: '244, 244, 245',
+                    secondary: '161, 161, 170',
+                  };
+                  return (
+                    <MagicCard
+                      key={lin.name}
+                      onClick={() => setSelectedLineage(lin.name)}
+                      selected={selectedLineage === lin.name}
+                      glowColor={glow.primary}
+                      glowSecondaryColor={glow.secondary}
+                      className="p-3.5"
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-white font-fantasy">{lin.name}</span>
+                        {lin.speedOverride && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-zinc-200">
+                            {lin.speedOverride} ft
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed">{lin.description}</p>
+                    </MagicCard>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -414,7 +483,7 @@ export default function CreateCharacterPage() {
             <div className="text-xs space-y-1">
               <h4 className="text-base font-bold text-white font-fantasy">{charName || 'Bezejmenný hrdina'}</h4>
               <p className="text-zinc-400">
-                {selectedSpecies.name} • {selectedClass.name} (Úroveň 1)
+                {fullSpeciesName} • {selectedClass.name} (Úroveň 1)
               </p>
               <p className="text-zinc-300">
                 Původ: {selectedBackground.name} ({selectedBackground.originFeat})

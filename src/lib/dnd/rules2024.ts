@@ -1,8 +1,16 @@
+export interface SpeciesLineage2024 {
+  name: string;
+  description: string;
+  speedOverride?: number;
+}
+
 export interface Species2024 {
   name: string;
   speed: number;
   size: 'Medium' | 'Small';
   traits: string[];
+  lineageLabel?: string;
+  lineages?: SpeciesLineage2024[];
 }
 
 export interface Class2024 {
@@ -22,16 +30,145 @@ export interface Background2024 {
 }
 
 export const SPECIES_2024: Species2024[] = [
-  { name: 'Human', speed: 30, size: 'Medium', traits: ['Resourceful (Heroic Inspiration on Long Rest)', 'Skillful (1 bonus skill)', 'Versatile (1 extra Origin Feat)'] },
-  { name: 'Elf', speed: 30, size: 'Medium', traits: ['Darkvision (60 ft)', 'Elven Lineage', 'Fey Ancestry', 'Keen Senses', 'Trance'] },
-  { name: 'Dwarf', speed: 30, size: 'Medium', traits: ['Darkvision (120 ft)', 'Dwarven Resilience (Poison resistance)', 'Dwarven Toughness (+1 HP per level)', 'Stonecunning'] },
-  { name: 'Halfling', speed: 30, size: 'Small', traits: ['Brave', 'Halfling Nimbleness', 'Lucky', 'Naturally Stealthy'] },
-  { name: 'Gnome', speed: 30, size: 'Small', traits: ['Darkvision (60 ft)', 'Gnomish Cunning (Advantage on INT/WIS/CHA saves)', 'Gnomish Lineage'] },
-  { name: 'Dragonborn', speed: 30, size: 'Medium', traits: ['Draconic Flight (level 5)', 'Breath Weapon', 'Damage Resistance', 'Darkvision (60 ft)'] },
-  { name: 'Tiefling', speed: 30, size: 'Medium', traits: ['Darkvision (60 ft)', 'Fiendish Legacy', 'Otherworldly Presence', 'Fire Resistance'] },
-  { name: 'Orc', speed: 30, size: 'Medium', traits: ['Adrenaline Rush (Dash as bonus action + Temp HP)', 'Darkvision (120 ft)', 'Relentless Endurance'] },
-  { name: 'Goliath', speed: 35, size: 'Medium', traits: ['Giant Ancestry', 'Large Form (level 5)', 'Powerful Build'] },
-  { name: 'Aasimar', speed: 30, size: 'Medium', traits: ['Celestial Revelation (level 3)', 'Darkvision (60 ft)', 'Healing Hands', 'Light Bearer'] },
+  {
+    name: 'Human',
+    speed: 30,
+    size: 'Medium',
+    traits: [
+      'Resourceful (Heroic Inspiration on Long Rest)',
+      'Skillful (1 bonus skill)',
+      'Versatile (1 extra Origin Feat)',
+    ],
+  },
+  {
+    name: 'Elf',
+    speed: 30,
+    size: 'Medium',
+    traits: ['Darkvision (60 ft)', 'Elven Lineage', 'Fey Ancestry', 'Keen Senses', 'Trance'],
+    lineageLabel: 'Elven Lineage (Rodová linie elfů)',
+    lineages: [
+      {
+        name: 'Drow',
+        description: 'Darkvision 120 ft • Dancing Lights (1. úr.), Faerie Fire (3. úr.), Darkness (5. úr.)',
+      },
+      {
+        name: 'High Elf',
+        description: 'Trik Prestidigitation (lze měnit po Long Restu) • Detect Magic (3. úr.), Misty Step (5. úr.)',
+      },
+      {
+        name: 'Wood Elf',
+        description: 'Rychlost 35 ft • Trik Druidcraft • Longstrider (3. úr.), Pass without Trace (5. úr.)',
+        speedOverride: 35,
+      },
+    ],
+  },
+  {
+    name: 'Dwarf',
+    speed: 30,
+    size: 'Medium',
+    traits: [
+      'Darkvision (120 ft)',
+      'Dwarven Resilience (Poison resistance)',
+      'Dwarven Toughness (+1 HP per level)',
+      'Stonecunning',
+    ],
+  },
+  {
+    name: 'Halfling',
+    speed: 30,
+    size: 'Small',
+    traits: ['Brave', 'Halfling Nimbleness', 'Lucky', 'Naturally Stealthy'],
+  },
+  {
+    name: 'Gnome',
+    speed: 30,
+    size: 'Small',
+    traits: ['Darkvision (60 ft)', 'Gnomish Cunning (Advantage on INT/WIS/CHA saves)', 'Gnomish Lineage'],
+    lineageLabel: 'Gnomish Lineage (Rodová linie gnómů)',
+    lineages: [
+      {
+        name: 'Forest Gnome',
+        description: 'Trik Minor Illusion • Kouzlo Speak with Animals (seslání bez slotu)',
+      },
+      {
+        name: 'Rock Gnome',
+        description: 'Triky Mending a Prestidigitation • Výroba drobných hodinářských strojků',
+      },
+    ],
+  },
+  {
+    name: 'Dragonborn',
+    speed: 30,
+    size: 'Medium',
+    traits: ['Draconic Flight (level 5)', 'Breath Weapon', 'Damage Resistance', 'Darkvision (60 ft)'],
+    lineageLabel: 'Draconic Ancestry (Dračí původ – živel dechu a odolnosti)',
+    lineages: [
+      { name: 'Red Dragon (Červený)', description: 'Dračí dech a odolnost: Oheň (Fire)' },
+      { name: 'Gold Dragon (Zlatý)', description: 'Dračí dech a odolnost: Oheň (Fire)' },
+      { name: 'Brass Dragon (Mosazný)', description: 'Dračí dech a odolnost: Oheň (Fire)' },
+      { name: 'Blue Dragon (Modrý)', description: 'Dračí dech a odolnost: Blesk (Lightning)' },
+      { name: 'Bronze Dragon (Bronzový)', description: 'Dračí dech a odolnost: Blesk (Lightning)' },
+      { name: 'White Dragon (Bílý)', description: 'Dračí dech a odolnost: Mráz (Cold)' },
+      { name: 'Silver Dragon (Stříbrný)', description: 'Dračí dech a odolnost: Mráz (Cold)' },
+      { name: 'Black Dragon (Černý)', description: 'Dračí dech a odolnost: Kyselina (Acid)' },
+      { name: 'Copper Dragon (Měděný)', description: 'Dračí dech a odolnost: Kyselina (Acid)' },
+      { name: 'Green Dragon (Zelený)', description: 'Dračí dech a odolnost: Jed (Poison)' },
+    ],
+  },
+  {
+    name: 'Tiefling',
+    speed: 30,
+    size: 'Medium',
+    traits: ['Darkvision (60 ft)', 'Fiendish Legacy', 'Otherworldly Presence'],
+    lineageLabel: 'Fiendish Legacy (Pekelný odkaz)',
+    lineages: [
+      {
+        name: 'Infernal (Pekelný)',
+        description: 'Odolnost: Oheň (Fire) • Trik Fire Bolt • Hellish Rebuke (3. úr.), Darkness (5. úr.)',
+      },
+      {
+        name: 'Abyssal (Propastný)',
+        description: 'Odolnost: Jed (Poison) • Trik Poison Spray • Ray of Sickness (3. úr.), Hold Person (5. úr.)',
+      },
+      {
+        name: 'Chthonic (Podsvětní)',
+        description: 'Odolnost: Nekrotická (Necrotic) • Trik Chill Touch • False Life (3. úr.), Ray of Enfeeblement (5. úr.)',
+      },
+    ],
+  },
+  {
+    name: 'Orc',
+    speed: 30,
+    size: 'Medium',
+    traits: ['Adrenaline Rush (Dash as bonus action + Temp HP)', 'Darkvision (120 ft)', 'Relentless Endurance'],
+  },
+  {
+    name: 'Goliath',
+    speed: 35,
+    size: 'Medium',
+    traits: ['Giant Ancestry', 'Large Form (level 5)', 'Powerful Build'],
+    lineageLabel: 'Giant Ancestry (Obří původ)',
+    lineages: [
+      { name: "Cloud's Jaunt (Oblačný obr)", description: 'Bonusová akce: magická teleportace až o 30 ft' },
+      { name: "Fire's Burn (Ohnivý obr)", description: 'Při zásahu útokem +1d10 ohnivého zranění (Fire)' },
+      { name: "Frost's Chill (Mrazivý obr)", description: 'Při zásahu +1d6 mrazivého zranění (Cold) a zpomalení o 10 ft' },
+      { name: "Hill's Tumble (Kopcový obr)", description: 'Při zásahu sražení cíle (Large či menší) k zemi (Prone)' },
+      { name: "Stone's Endurance (Kamenný obr)", description: 'Reakce: snížení obdrženého zranění o 1d12 + CON modifikátor' },
+      { name: "Storm's Thunder (Bouřný obr)", description: 'Reakce: 1d8 hromového zranění (Thunder) útočníkovi do 60 ft' },
+    ],
+  },
+  {
+    name: 'Aasimar',
+    speed: 30,
+    size: 'Medium',
+    traits: ['Celestial Revelation (level 3)', 'Darkvision (60 ft)', 'Healing Hands', 'Light Bearer'],
+    lineageLabel: 'Celestial Revelation (Nebeská podoba od 3. úrovně)',
+    lineages: [
+      { name: 'Heavenly Wings', description: 'Nebeská křídla (rychlost letu) + bonusové zářivé zranění (Radiant)' },
+      { name: 'Inner Radiance', description: 'Spařující nebeské světlo kolem tebe + zářivé zranění (Radiant)' },
+      { name: 'Necrotic Shroud', description: 'Děsivá aura (Frightened) + bonusové nekrotické zranění (Necrotic)' },
+    ],
+  },
 ];
 
 export const CLASSES_2024: Class2024[] = [
