@@ -175,7 +175,7 @@ export default function VaultPage() {
           {characters.map((char) => (
             <div
               key={char.id}
-              className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20 group"
+              className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-2xl transition-all duration-200 ease-out transform-gpu hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20 group"
             >
               <div className="flex items-start space-x-3.5">
                 <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-white/20 transition-colors">

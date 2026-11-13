@@ -137,7 +137,7 @@ export default function CampaignsPage() {
             {campaigns.map((camp) => (
               <div
                 key={camp.id}
-                className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-5 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20 flex flex-col justify-between group"
+                className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-5 shadow-2xl transition-all duration-200 ease-out transform-gpu hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20 flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-start justify-between">

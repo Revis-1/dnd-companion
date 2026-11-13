@@ -193,7 +193,7 @@ export default function DMDashboardPage() {
               return (
                 <div
                   key={char.id}
-                  className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20"
+                  className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl transition-all duration-200 ease-out transform-gpu hover:-translate-y-1 hover:bg-zinc-900/50 hover:border-white/20"
                 >
                   {/* Top info */}
                   <div className="flex items-center space-x-3">
