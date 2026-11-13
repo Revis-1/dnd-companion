@@ -4,14 +4,22 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Character } from '@/types/database';
-import { calculateModifier, formatModifier } from '@/lib/dnd/rules2024';
+import {
+  CLASSES_2024,
+  calculateModifier,
+  formatModifier,
+  calculateMaxHp,
+} from '@/lib/dnd/rules2024';
 import {
   Heart,
   Shield,
   Moon,
   ArrowLeft,
   Skull,
+  Sparkles,
+  Check,
 } from 'lucide-react';
+import MagicCard from '@/components/MagicCard';
 
 export default function CharacterSheetPage() {
   const { id } = useParams();
@@ -133,6 +141,49 @@ export default function CharacterSheetPage() {
       .eq('id', character.id);
   };
 
+  const classObj = CLASSES_2024.find((c) => c.name === character.class_name);
+
+  const handleLevelUp = async () => {
+    if (character.level >= 20) return;
+    const nextLevel = character.level + 1;
+    const hitDie = classObj?.hitDie || 8;
+    const conMod = calculateModifier(character.stats.con);
+    const isDwarf = character.species.startsWith('Dwarf');
+    const hasTough = character.origin_feat === 'Tough';
+
+    const newMaxHp = calculateMaxHp(hitDie, conMod, nextLevel, isDwarf, hasTough);
+    const hpGain = Math.max(1, newMaxHp - character.hp_max);
+    const newCurrentHp = character.hp_current + hpGain;
+
+    if (
+      !confirm(
+        `Povýšit postavu ${character.name} na ${nextLevel}. úroveň?\nMaximální životy se zvýší o +${hpGain} HP (na ${newMaxHp} HP).`
+      )
+    ) {
+      return;
+    }
+
+    await supabase
+      .from('characters')
+      .update({
+        level: nextLevel,
+        hp_max: newMaxHp,
+        hp_current: newCurrentHp,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', character.id);
+  };
+
+  const handleSelectSubclass = async (subName: string) => {
+    await supabase
+      .from('characters')
+      .update({
+        subclass: subName,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', character.id);
+  };
+
   const handleDeathSave = async (type: 'success' | 'failure') => {
     const ds = { ...character.death_saves };
     if (type === 'success') {
@@ -158,6 +209,16 @@ export default function CharacterSheetPage() {
         </button>
 
         <div className="flex space-x-2">
+          {character.level < 20 && (
+            <button
+              onClick={handleLevelUp}
+              className="flex items-center space-x-1.5 bg-zinc-200 text-zinc-900 hover:bg-white border border-transparent hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] font-bold text-xs px-3.5 py-1.5 rounded-xl transition-all duration-300"
+              title="Povýšit postavu na další úroveň a přepočítat životy"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-zinc-900" />
+              <span>Level Up ({character.level} → {character.level + 1})</span>
+            </button>
+          )}
           <button
             onClick={handleLongRest}
             className="flex items-center space-x-1.5 bg-zinc-900/40 backdrop-blur-md hover:bg-zinc-900/60 border border-white/10 text-zinc-200 text-xs px-3.5 py-1.5 rounded-xl transition"
@@ -168,6 +229,32 @@ export default function CharacterSheetPage() {
           </button>
         </div>
       </div>
+
+      {/* Výběr Podtřídy (Subclass), pokud je postava na 3.+ úrovni a ještě nemá zvolenou podtřídu */}
+      {character.level >= 3 && !character.subclass && classObj && (
+        <div className="bg-zinc-900/40 backdrop-blur-md border border-white/20 rounded-2xl p-5 space-y-3 shadow-2xl">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white font-fantasy uppercase tracking-wider flex items-center space-x-2">
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <span>Dosáhli jste {character.level}. úrovně! Zvolte svou Podtřídu ({character.class_name}):</span>
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {classObj.subclassesAtLevel3.map((sub) => (
+              <MagicCard
+                key={sub}
+                onClick={() => handleSelectSubclass(sub)}
+                className="p-3.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white font-fantasy">{sub}</span>
+                  <Check className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white" />
+                </div>
+              </MagicCard>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Hero Character Card */}
       <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-2xl">

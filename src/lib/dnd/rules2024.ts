@@ -214,3 +214,24 @@ export function calculateModifier(stat: number): number {
 export function formatModifier(mod: number): string {
   return mod >= 0 ? `+${mod}` : `${mod}`;
 }
+
+/**
+ * Výpočet maximálních životů (Max HP) dle pravidel D&D 2024:
+ * - 1. úroveň: plná Hit Die + CON modifikátor + bonusy za rasu/feat
+ * - Další úrovně: pevný průměr (HitDie / 2 + 1) + CON modifikátor + bonusy za rasu/feat
+ */
+export function calculateMaxHp(
+  hitDie: number,
+  conMod: number,
+  level: number,
+  isDwarf = false,
+  hasTough = false
+): number {
+  const bonusPerLevel = (isDwarf ? 1 : 0) + (hasTough ? 2 : 0);
+  const level1Hp = Math.max(1, hitDie + conMod) + bonusPerLevel;
+  if (level <= 1) return level1Hp;
+
+  const avgRoll = Math.floor(hitDie / 2) + 1;
+  const perExtraLevel = Math.max(1, avgRoll + conMod) + bonusPerLevel;
+  return level1Hp + (level - 1) * perExtraLevel;
+}

@@ -9,6 +9,7 @@ import {
   BACKGROUNDS_2024,
   calculateModifier,
   formatModifier,
+  calculateMaxHp,
 } from '@/lib/dnd/rules2024';
 import { Sparkles, ArrowRight, ArrowLeft, Check, Shield, Heart } from 'lucide-react';
 import MagicCard from '@/components/MagicCard';
@@ -73,7 +74,8 @@ export default function CreateCharacterPage() {
   const [selectedLineage, setSelectedLineage] = useState<string>('');
   const [selectedClass, setSelectedClass] = useState(CLASSES_2024[0]);
   const [selectedBackground, setSelectedBackground] = useState(BACKGROUNDS_2024[0]);
-  const [subclass] = useState<string>('');
+  const [startingLevel, setStartingLevel] = useState<1 | 2 | 3>(1);
+  const [subclass, setSubclass] = useState<string>('');
 
   const [baseStats, setBaseStats] = useState({
     str: 15,
@@ -115,6 +117,16 @@ export default function CreateCharacterPage() {
     }
   }, [selectedBackground]);
 
+  useEffect(() => {
+    if (startingLevel === 3) {
+      if (!subclass || !selectedClass.subclassesAtLevel3.includes(subclass)) {
+        setSubclass(selectedClass.subclassesAtLevel3[0] || '');
+      }
+    } else {
+      setSubclass('');
+    }
+  }, [startingLevel, selectedClass]);
+
   const finalStats = {
     str: baseStats.str + (statPlus2 === 'str' ? 2 : 0) + (statPlus1 === 'str' ? 1 : 0),
     dex: baseStats.dex + (statPlus2 === 'dex' ? 2 : 0) + (statPlus1 === 'dex' ? 1 : 0),
@@ -125,9 +137,13 @@ export default function CreateCharacterPage() {
   };
 
   const conMod = calculateModifier(finalStats.con);
-  const dwarfBonusHp = selectedSpecies.name === 'Dwarf' ? 1 : 0;
-  const toughBonusHp = selectedBackground.originFeat === 'Tough' ? 2 : 0;
-  const startingHp = selectedClass.hitDie + conMod + dwarfBonusHp + toughBonusHp;
+  const startingHp = calculateMaxHp(
+    selectedClass.hitDie,
+    conMod,
+    startingLevel,
+    selectedSpecies.name === 'Dwarf',
+    selectedBackground.originFeat === 'Tough'
+  );
   const fullSpeciesName = selectedLineage
     ? `${selectedSpecies.name} (${selectedLineage})`
     : selectedSpecies.name;
@@ -143,8 +159,8 @@ export default function CreateCharacterPage() {
           name: charName.trim(),
           species: fullSpeciesName,
           class_name: selectedClass.name,
-          subclass: subclass || null,
-          level: 1,
+          subclass: startingLevel === 3 && subclass ? subclass : null,
+          level: startingLevel,
           background: selectedBackground.name,
           origin_feat: selectedBackground.originFeat,
           stats: finalStats,
@@ -437,38 +453,109 @@ export default function CreateCharacterPage() {
         </div>
       )}
 
-      {/* Step 5: Visuals & Name */}
+      {/* Step 5: Visuals, Level & Summary */}
       {step === 5 && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-sm text-zinc-300">
-            Pojmenujte svou postavu a vložte obrázek (nebo ponechte výchozí siluetu):
+            Pojmenujte svou postavu, zvolte počáteční úroveň (1–3) a zkontrolujte shrnutí:
           </p>
 
-          <div>
-            <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-              Jméno hrdiny *
-            </label>
-            <input
-              type="text"
-              required
-              value={charName}
-              onChange={(e) => setCharName(e.target.value)}
-              placeholder="např. Thorgar Železná Pěst"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-medium focus:outline-none focus:border-white/30"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
+                Jméno hrdiny *
+              </label>
+              <input
+                type="text"
+                required
+                value={charName}
+                onChange={(e) => setCharName(e.target.value)}
+                placeholder="např. Thorgar Železná Pěst"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-medium focus:outline-none focus:border-white/30"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
+                URL obrázku avatara (volitelné)
+              </label>
+              <input
+                type="url"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder="https://... (nebo nechte prázdné)"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-white/30"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-              URL obrázku avatara (volitelné)
-            </label>
-            <input
-              type="url"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="https://... (odkaz na obrázek nebo nechte prázdné)"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-white/30"
-            />
+          {/* Volba počáteční úrovně (1 - 3) */}
+          <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl space-y-3 shadow-xl">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-zinc-200 uppercase tracking-wider font-fantasy">
+                Počáteční úroveň postavy (max. 3 při tvorbě)
+              </label>
+              <span className="text-[11px] text-zinc-400">
+                Vyšší úrovně (4+) lze zvyšovat přímo v deníku postavy
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {([1, 2, 3] as const).map((lvl) => (
+                <button
+                  key={lvl}
+                  type="button"
+                  onClick={() => setStartingLevel(lvl)}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all duration-200 ${
+                    startingLevel === lvl
+                      ? 'bg-zinc-200 text-zinc-900 border-transparent shadow-md'
+                      : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <div>Úroveň {lvl}</div>
+                  <div className={`text-[10px] font-normal mt-0.5 ${startingLevel === lvl ? 'text-zinc-700' : 'text-zinc-400'}`}>
+                    {lvl === 1 ? 'Start od nuly' : lvl === 2 ? 'Zkušenější' : '+ Podtřída (Subclass)'}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Výběr podtřídy (Subclass), pokud hráč začíná na 3. úrovni */}
+            {startingLevel === 3 && (
+              <div className="pt-3 border-t border-white/10 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider font-fantasy">
+                    Zvolte Podtřídu (Subclass) pro povolání {selectedClass.name}:
+                  </span>
+                  <span className="text-xs text-zinc-400">
+                    Vybráno: <strong className="text-white">{subclass}</strong>
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {selectedClass.subclassesAtLevel3.map((sub) => {
+                    const glow = CLASS_GLOW[selectedClass.name] || {
+                      primary: '59, 130, 246',
+                      secondary: '37, 99, 235',
+                    };
+                    return (
+                      <MagicCard
+                        key={sub}
+                        onClick={() => setSubclass(sub)}
+                        selected={subclass === sub}
+                        glowColor={glow.primary}
+                        glowSecondaryColor={glow.secondary}
+                        className="p-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-white font-fantasy">{sub}</span>
+                          {subclass === sub && <Check className="w-3.5 h-3.5 text-zinc-200" />}
+                        </div>
+                      </MagicCard>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Character summary card */}
@@ -482,13 +569,16 @@ export default function CreateCharacterPage() {
             </div>
             <div className="text-xs space-y-1">
               <h4 className="text-base font-bold text-white font-fantasy">{charName || 'Bezejmenný hrdina'}</h4>
-              <p className="text-zinc-400">
-                {fullSpeciesName} • {selectedClass.name} (Úroveň 1)
+              <p className="text-zinc-300 font-medium">
+                {fullSpeciesName} • {selectedClass.name}
+                {startingLevel === 3 && subclass ? ` (${subclass})` : ''} — <strong>Úroveň {startingLevel}</strong>
               </p>
-              <p className="text-zinc-300">
+              <p className="text-zinc-400">
                 Původ: {selectedBackground.name} ({selectedBackground.originFeat})
               </p>
-              <p className="text-red-300 font-semibold">Životy: {startingHp} HP</p>
+              <p className="text-red-300 font-semibold">
+                Počáteční životy (Úroveň {startingLevel}): {startingHp} HP
+              </p>
             </div>
           </div>
         </div>
