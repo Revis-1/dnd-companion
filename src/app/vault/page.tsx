@@ -64,7 +64,7 @@ export default function VaultPage() {
           {/* Tlačítko na pozvání kamaráda do aplikace bez nutnosti kampaně */}
           <button
             onClick={() => setShowInviteModal(true)}
-            className="inline-flex items-center space-x-2 bg-fantasy-card hover:bg-fantasy-border border border-fantasy-gold/50 text-fantasy-gold font-bold px-4 py-2 rounded-lg transition text-xs"
+            className="inline-flex items-center space-x-2 bg-[#26170d] hover:bg-[#382112] border border-[#6b4421] text-fantasy-gold font-bold px-4 py-2 rounded-xl transition text-xs shadow-md"
           >
             <UserPlus className="w-4 h-4" />
             <span>Pozvat kamaráda</span>
@@ -72,7 +72,7 @@ export default function VaultPage() {
 
           <Link
             href="/create"
-            className="inline-flex items-center space-x-2 bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold px-4 py-2 rounded-lg transition text-xs"
+            className="btn-gold inline-flex items-center space-x-2 px-4 py-2 rounded-xl transition text-xs shadow-md"
           >
             <Plus className="w-4 h-4" />
             <span>Vytvořit postavu</span>
@@ -169,7 +169,7 @@ export default function VaultPage() {
           {characters.map((char) => (
             <div
               key={char.id}
-              className="bg-fantasy-card border border-fantasy-border hover:border-fantasy-gold/50 rounded-xl p-5 flex flex-col justify-between space-y-4 transition group"
+              className="tome-page hover:border-[#855728] rounded-2xl p-5 flex flex-col justify-between space-y-4 transition group"
             >
               <div className="flex items-start space-x-3">
                 <div className="w-14 h-14 rounded-full bg-fantasy-darker border border-fantasy-border flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-fantasy-gold transition">
@@ -216,10 +216,10 @@ export default function VaultPage() {
 
               <Link
                 href={`/character/${char.id}`}
-                className="w-full bg-fantasy-darker hover:bg-fantasy-gold hover:text-black border border-fantasy-border text-fantasy-parchment font-semibold text-xs py-2 rounded-lg transition flex items-center justify-center space-x-1.5"
+                className="w-full bg-[#1b1008] hover:bg-[#2b190c] border border-[#5a3818] text-fantasy-parchment font-semibold text-xs py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 shadow"
               >
                 <span>Otevřít deník postavy</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 text-fantasy-gold" />
               </Link>
             </div>
           ))}

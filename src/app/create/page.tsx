@@ -375,12 +375,12 @@ export default function CreateCharacterPage() {
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-4 border-t border-fantasy-border">
+      <div className="flex justify-between items-center pt-5 border-t border-[#4d3119]">
         {step > 1 ? (
           <button
             type="button"
             onClick={() => setStep(step - 1)}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-fantasy-card border border-fantasy-border text-gray-300 hover:text-white transition"
+            className="flex items-center space-x-1.5 px-5 py-2.5 rounded-xl bg-[#21140a] border border-[#5a3818] text-fantasy-parchment hover:text-white transition text-xs font-bold"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Zpět</span>
@@ -393,7 +393,7 @@ export default function CreateCharacterPage() {
           <button
             type="button"
             onClick={() => setStep(step + 1)}
-            className="flex items-center space-x-1.5 px-5 py-2.5 rounded-lg bg-fantasy-gold hover:bg-fantasy-goldHover text-black font-bold transition"
+            className="btn-gold flex items-center space-x-1.5 px-6 py-2.5 rounded-xl text-xs font-black shadow-lg"
           >
             <span>Pokračovat</span>
             <ArrowRight className="w-4 h-4" />
@@ -403,7 +403,7 @@ export default function CreateCharacterPage() {
             type="button"
             disabled={saving || !charName.trim()}
             onClick={handleFinish}
-            className="flex items-center space-x-1.5 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-7 py-3 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white font-bold transition text-xs shadow-lg shadow-emerald-950/60 disabled:opacity-50"
           >
             <Check className="w-4 h-4" />
             <span>{saving ? 'Ukládám...' : 'Dokončit a uložit postavu'}</span>

@@ -177,8 +177,8 @@ export default function CharacterSheetPage() {
       </div>
 
       {/* Hero Character Card */}
-      <div className="bg-fantasy-card border border-fantasy-border rounded-2xl p-5 flex flex-col md:flex-row items-center md:items-start gap-5">
-        <div className="w-24 h-24 rounded-2xl bg-fantasy-darker border-2 border-fantasy-gold/60 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg">
+      <div className="tome-page rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-2xl">
+        <div className="w-24 h-24 rounded-2xl bg-[#1a1007] border-2 border-fantasy-gold overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/80">
           {character.avatar_url ? (
             <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
           ) : (
@@ -187,16 +187,16 @@ export default function CharacterSheetPage() {
         </div>
 
         <div className="flex-1 text-center md:text-left space-y-2">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-            <h1 className="text-2xl font-black text-white">{character.name}</h1>
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-fantasy-gold text-black">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+            <h1 className="text-3xl font-black text-white tracking-wide">{character.name}</h1>
+            <span className="btn-gold text-xs px-3 py-0.5 rounded-full font-bold">
               Úroveň {character.level}
             </span>
           </div>
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-fantasy-parchment font-medium">
             {character.species} • {character.class_name} {character.subclass && `(${character.subclass})`}
           </p>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-gray-400">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-fantasy-parchmentMuted">
             <span>Původ: <strong className="text-fantasy-parchment">{character.background}</strong></span>
             <span>•</span>
             <span>Origin Feat: <strong className="text-fantasy-gold">{character.origin_feat}</strong></span>
@@ -207,7 +207,7 @@ export default function CharacterSheetPage() {
       {/* HP & Combat Management Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Live HP Box */}
-        <div className="md:col-span-2 bg-fantasy-card border border-fantasy-border rounded-2xl p-5 space-y-4">
+        <div className="md:col-span-2 tome-page rounded-2xl p-6 space-y-4 shadow-xl">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-bold uppercase text-gray-300 flex items-center space-x-1.5">
               <Heart className="w-4 h-4 text-red-500 fill-red-500" />
@@ -283,7 +283,7 @@ export default function CharacterSheetPage() {
         </div>
 
         {/* Death Saves Box */}
-        <div className="bg-fantasy-card border border-fantasy-border rounded-2xl p-5 space-y-4">
+        <div className="tome-page rounded-2xl p-6 space-y-4 shadow-xl">
           <h3 className="text-sm font-bold uppercase text-gray-300 flex items-center space-x-1.5">
             <Skull className="w-4 h-4 text-gray-400" />
             <span>Záchranné hody (0 HP)</span>
@@ -356,11 +356,11 @@ export default function CharacterSheetPage() {
           return (
             <div
               key={s}
-              className="bg-fantasy-card border border-fantasy-border p-3 rounded-xl text-center space-y-1 shadow"
+              className="tome-page p-3.5 rounded-2xl text-center space-y-1 shadow-lg border border-[#5c3a1b]"
             >
-              <span className="text-[11px] font-bold uppercase text-gray-400">{s}</span>
-              <div className="text-xl font-black text-white">{val}</div>
-              <div className="text-xs font-bold text-fantasy-gold bg-fantasy-darker rounded py-0.5 border border-fantasy-border">
+              <span className="text-[11px] font-bold uppercase text-fantasy-gold">{s}</span>
+              <div className="text-2xl font-black text-white">{val}</div>
+              <div className="text-xs font-bold text-fantasy-goldBright bg-[#170e07] rounded-lg py-1 border border-[#4d2f13] shadow-inner">
                 {formatModifier(mod)}
               </div>
             </div>
