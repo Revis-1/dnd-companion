@@ -3,18 +3,30 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Shield, BookOpen, User, LogOut, Sparkles } from 'lucide-react';
+import { Shield, User, LogOut, Sparkles, ShieldAlert } from 'lucide-react';
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+
+  const loadProfile = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    if (data) setProfile(data);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) loadProfile(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -36,6 +48,15 @@ export default function Navbar() {
         <div className="flex items-center space-x-4 text-sm">
           {user ? (
             <>
+              {profile?.is_master_admin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center space-x-1 text-red-400 hover:text-red-300 font-semibold transition"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>Admin</span>
+                </Link>
+              )}
               <Link href="/vault" className="flex items-center space-x-1.5 text-gray-300 hover:text-fantasy-gold transition">
                 <User className="w-4 h-4" />
                 <span>Trezor</span>
@@ -46,11 +67,16 @@ export default function Navbar() {
               </Link>
               <Link href="/create" className="flex items-center space-x-1.5 text-fantasy-gold hover:text-fantasy-goldHover bg-fantasy-card border border-fantasy-gold/30 px-3 py-1.5 rounded-md transition font-medium">
                 <Sparkles className="w-4 h-4" />
-                <span>Nová postava</span>
+                <span className="hidden sm:inline">Nová postava</span>
               </Link>
+              {profile && (
+                <span className="text-xs text-gray-400 hidden md:inline">
+                  ({profile.username})
+                </span>
+              )}
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-1 text-gray-400 hover:text-red-400 transition ml-2"
+                className="flex items-center space-x-1 text-gray-400 hover:text-red-400 transition ml-1"
                 title="Odhlásit se"
               >
                 <LogOut className="w-4 h-4" />

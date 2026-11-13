@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { supabase, usernameToEmail } from '@/lib/supabase/client';
 import { Campaign, Character } from '@/types/database';
-import { Shield, Sparkles, Check, ArrowRight, UserPlus, LogIn, AlertCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function JoinCampaignPage() {
   const { inviteCode } = useParams();
@@ -17,18 +17,16 @@ export default function JoinCampaignPage() {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
 
-  // Formulář pro registraci / přihlášení pozvaného hráče
+  // Formulář pro registraci / přihlášení pozvaného hráče (pouze Jméno + Heslo)
   const [authMode, setAuthMode] = useState<'register' | 'login'>('register');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
-      // 1. Ověříme kampaň podle invite kódu
-      const { data: camp, error } = await supabase
+      const { data: camp } = await supabase
         .from('campaigns')
         .select('*')
         .eq('invite_code', inviteCode)
@@ -36,7 +34,6 @@ export default function JoinCampaignPage() {
 
       if (camp) setCampaign(camp);
 
-      // 2. Ověříme, zda je uživatel přihlášený
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
@@ -53,36 +50,45 @@ export default function JoinCampaignPage() {
     if (inviteCode) init();
   }, [inviteCode]);
 
-  // Registrace nebo přihlášení hráče přímo přes zvací odkaz
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!campaign) return;
     setAuthLoading(true);
     setAuthError(null);
 
+    const internalEmail = usernameToEmail(username);
+
     try {
       if (authMode === 'register') {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { username: username.trim() || email.split('@')[0] },
-          },
-        });
-        if (error) throw error;
-        if (data.user && campaign) {
-          // Automaticky přidáme uživatele do kampaně
-          await supabase.from('campaign_members').upsert([
-            { campaign_id: campaign.id, user_id: data.user.id },
-          ]);
-          router.push('/create'); // Nový hráč rovnou vytváří postavu!
+        if (password.length < 6) {
+          throw new Error('Heslo musí mít alespoň 6 znaků.');
         }
+
+        // Zavoláme databázovou funkci, která vytvoří účet rovnou aktivovaný (bez nutnosti potvrzovat e-mail)
+        const { error: rpcErr } = await supabase.rpc('register_player_with_invite', {
+          p_username: username.trim(),
+          p_email: internalEmail,
+          p_password: password,
+          p_invite_code: inviteCode as string,
+        });
+
+        if (rpcErr) throw rpcErr;
+
+        // Okamžitě hráče přihlásíme
+        const { error: signInErr } = await supabase.auth.signInWithPassword({
+          email: internalEmail,
+          password,
+        });
+
+        if (signInErr) throw signInErr;
+        router.push('/create');
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: internalEmail,
           password,
         });
         if (error) throw error;
-        if (data.user && campaign) {
+        if (data.user) {
           await supabase.from('campaign_members').upsert([
             { campaign_id: campaign.id, user_id: data.user.id },
           ]);
@@ -90,12 +96,11 @@ export default function JoinCampaignPage() {
         }
       }
     } catch (err: any) {
-      setAuthError(err.message || 'Chyba při přihlašování');
+      setAuthError(err.message || 'Chyba při registraci/přihlášení');
       setAuthLoading(false);
     }
   };
 
-  // Pokud už je uživatel přihlášen, potvrdí vstup do kampaně
   const handleJoinLoggedUser = async () => {
     if (!campaign || !user) return;
     setJoining(true);
@@ -154,7 +159,6 @@ export default function JoinCampaignPage() {
         </div>
       )}
 
-      {/* Pokud hráč ještě NENÍ přihlášený -> All-in-One formulář registrace / přihlášení */}
       {!user ? (
         <div className="space-y-4">
           <div className="flex border-b border-fantasy-border">
@@ -181,39 +185,28 @@ export default function JoinCampaignPage() {
           </div>
 
           <form onSubmit={handleAuthSubmit} className="space-y-3">
-            {authMode === 'register' && (
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">
-                  Jméno / Přezdívka hráče *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="např. Martin nebo Gandalf"
-                  className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg px-3 py-2 text-sm text-white"
-                />
-              </div>
-            )}
-
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">E-mail *</label>
+              <label className="block text-xs font-semibold text-gray-300 mb-1">
+                Jméno účtu / Přezdívka *
+              </label>
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="vas@email.cz"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="např. Martin nebo Aragorn"
                 className="w-full bg-fantasy-darker border border-fantasy-border rounded-lg px-3 py-2 text-sm text-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">Heslo *</label>
+              <label className="block text-xs font-semibold text-gray-300 mb-1">
+                Heslo (min. 6 znaků) *
+              </label>
               <input
                 type="password"
                 required
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -229,17 +222,14 @@ export default function JoinCampaignPage() {
               {authLoading
                 ? 'Vstupuji do hry...'
                 : authMode === 'register'
-                ? 'Zaregistrovat a připojit ke stolu'
+                ? 'Vytvořit účet a připojit ke stolu'
                 : 'Přihlásit a připojit ke stolu'}
             </button>
           </form>
         </div>
       ) : (
-        /* Hráč už je přihlášený -> pouze potvrdí postavu */
         <div className="space-y-4 text-xs text-gray-300">
-          <p>
-            Jste přihlášen jako <strong>{user.email}</strong>. Vyberte postavu ze svého trezoru:
-          </p>
+          <p>Vyberte postavu ze svého trezoru, se kterou vstoupíte do kampaně:</p>
 
           {characters.length > 0 ? (
             <div>

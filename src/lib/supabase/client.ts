@@ -9,3 +9,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
   },
 });
+
+/**
+ * Převede uživatelské jméno (např. "Revis") na interní přihlašovací e-mail,
+ * takže uživatelé nepotřebují zadávat e-mailovou adresu ani potvrzovat e-maily.
+ */
+export function usernameToEmail(usernameOrEmail: string): string {
+  const trimmed = usernameOrEmail.trim().toLowerCase();
+  if (trimmed.includes('@')) {
+    return trimmed;
+  }
+  const normalized = trimmed
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9._-]/g, '_');
+  return `${normalized}@dnd2024.local`;
+}
