@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react';
 import { supabase, usernameToEmail } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, AlertCircle, KeyRound } from 'lucide-react';
+import MagicPasswordInput from '@/components/MagicPasswordInput';
 
 function LoginForm() {
   const router = useRouter();
@@ -91,13 +92,11 @@ function LoginForm() {
           <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
             Heslo
           </label>
-          <input
-            type="password"
+          <MagicPasswordInput
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
           />
         </div>
 

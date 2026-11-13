@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase, usernameToEmail } from '@/lib/supabase/client';
 import { Sparkles, ArrowRight, AlertCircle, UserCheck } from 'lucide-react';
+import MagicPasswordInput from '@/components/MagicPasswordInput';
 
 export default function AppInvitePage() {
   const { code } = useParams();
@@ -129,14 +130,12 @@ export default function AppInvitePage() {
           <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
             Heslo (min. 6 znaků) *
           </label>
-          <input
-            type="password"
+          <MagicPasswordInput
             required
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
           />
         </div>
 
