@@ -18,6 +18,7 @@ import {
   Skull,
   Sparkles,
   Check,
+  Upload,
 } from 'lucide-react';
 import MagicCard from '@/components/MagicCard';
 
@@ -184,6 +185,50 @@ export default function CharacterSheetPage() {
       .eq('id', character.id);
   };
 
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Vyberte prosím platný soubor obrázku.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = async () => {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+        let compressedDataUrl = canvas.toDataURL('image/webp', 0.82);
+        if (!compressedDataUrl.startsWith('data:image/webp')) {
+          compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        }
+
+        await supabase
+          .from('characters')
+          .update({
+            avatar_url: compressedDataUrl,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', character.id);
+      };
+      if (typeof event.target?.result === 'string') {
+        img.src = event.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleDeathSave = async (type: 'success' | 'failure') => {
     const ds = { ...character.death_saves };
     if (type === 'success') {
@@ -258,13 +303,26 @@ export default function CharacterSheetPage() {
 
       {/* Hero Character Card */}
       <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-2xl">
-        <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg">
+        <label
+          title="Kliknutím nahrajete nebo změníte portrét postavy"
+          className="relative group w-24 h-24 rounded-2xl bg-white/5 border border-white/10 hover:border-white/30 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer transition-all"
+        >
           {character.avatar_url ? (
             <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
           ) : (
             <Shield className="w-12 h-12 text-zinc-400" />
           )}
-        </div>
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-[10px] text-zinc-200 font-semibold">
+            <Upload className="w-4 h-4 mb-1" />
+            <span>Změnit</span>
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarUpload}
+            className="hidden"
+          />
+        </label>
 
         <div className="flex-1 text-center md:text-left space-y-2">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">

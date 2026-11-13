@@ -12,7 +12,7 @@ import {
   formatModifier,
   calculateMaxHp,
 } from '@/lib/dnd/rules2024';
-import { Sparkles, ArrowRight, ArrowLeft, Check, Shield, Heart } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Check, Shield, Heart, Upload, X } from 'lucide-react';
 import MagicCard from '@/components/MagicCard';
 
 // Tematické RGB barvy pro jednotlivé Rasy (Species)
@@ -95,6 +95,51 @@ export default function CreateCharacterPage() {
 
   const [charName, setCharName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarFileName, setAvatarFileName] = useState('');
+
+  // Automatické zmenšení a čtvercový ořez nahraného obrázku (256x256 px, ~15-25 kB) přímo v prohlížeči
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Vyberte prosím platný soubor obrázku (JPG, PNG, WebP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Čtvercový středový ořez (center crop)
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+        // Komprese do WebP (nebo JPEG fallbacku) s kvalitou 0.82 (~15–25 kB)
+        let compressedDataUrl = canvas.toDataURL('image/webp', 0.82);
+        if (!compressedDataUrl.startsWith('data:image/webp')) {
+          compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        }
+
+        setAvatarUrl(compressedDataUrl);
+        setAvatarFileName(file.name);
+      };
+      if (typeof event.target?.result === 'string') {
+        img.src = event.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -775,15 +820,35 @@ export default function CreateCharacterPage() {
 
             <div>
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-                URL obrázku avatara (volitelné)
+                Portrét postavy (volitelné)
               </label>
-              <input
-                type="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="https://... (nebo nechte prázdné)"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-white/30"
-              />
+              <div className="flex items-center space-x-2">
+                <label className="flex-1 cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-xl px-4 py-2.5 text-xs text-zinc-200 flex items-center justify-center space-x-2 transition-all">
+                  <Upload className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                  <span className="truncate">
+                    {avatarFileName ? avatarFileName : 'Nahrát obrázek z zařízení...'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                </label>
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAvatarUrl('');
+                      setAvatarFileName('');
+                    }}
+                    title="Odebrat obrázek"
+                    className="p-2.5 rounded-xl bg-red-950/40 hover:bg-red-900/50 border border-red-500/30 text-red-300 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
