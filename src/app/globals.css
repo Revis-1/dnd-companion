@@ -23,65 +23,6 @@ h1, h2, h3, .font-fantasy {
   letter-spacing: 0.04em;
 }
 
-/* Neutrální Glassmorphism karty */
-.glass-card-neutral {
-  background-color: rgba(24, 24, 27, 0.5); /* zinc-900/50 */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(113, 113, 122, 0.2); /* zinc-500/20 */
-  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.5);
-}
-
-.glass-card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card-hover:hover {
-  transform: scale(1.02) translateY(-4px);
-  border-color: rgba(161, 161, 170, 0.35);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.07), 0 20px 40px rgba(0, 0, 0, 0.6);
-}
-
-/* Neutrální oddělovací linka do ztracena */
-.divider-neutral {
-  height: 1px;
-  width: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(113, 113, 122, 0.4) 50%, transparent 100%);
-}
-
-/* Neutrální prémiové hlavní tlačítko */
-.btn-primary-zinc {
-  background-color: #f4f4f5; /* zinc-100 */
-  color: #09090b; /* zinc-950 */
-  font-weight: 700;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-
-.btn-primary-zinc:hover {
-  background-color: #ffffff;
-  transform: scale(1.02) translateY(-2px);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15), 0 8px 25px rgba(0, 0, 0, 0.6);
-}
-
-/* Neutrální elegantní outline tlačítko */
-.btn-outline-zinc {
-  background-color: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid #52525b; /* zinc-600 */
-  color: #d4d4d8; /* zinc-300 */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-outline-zinc:hover {
-  background-color: rgba(39, 39, 42, 0.5); /* zinc-800/50 */
-  border-color: #a1a1aa; /* zinc-400 */
-  color: #ffffff;
-  transform: scale(1.02) translateY(-2px);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.06);
-}
-
 /* Decentní neutrální scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
