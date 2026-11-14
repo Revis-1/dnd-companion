@@ -14,6 +14,7 @@ import {
 } from '@/lib/dnd/rules2024';
 import { Sparkles, ArrowRight, ArrowLeft, Check, Shield, Heart, Upload, X } from 'lucide-react';
 import MagicCard from '@/components/MagicCard';
+import { detectFaceCropBox, renderFaceCropDataUrl } from '@/lib/image/faceCrop';
 
 // Tematické RGB barvy pro jednotlivé Rasy (Species)
 const SPECIES_GLOW: Record<string, { primary: string; secondary: string }> = {
@@ -113,7 +114,7 @@ export default function CreateCharacterPage() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         // 1. Velká ilustrace celé postavy (zachová poměr stran, max 600x800)
         const maxW = 600;
         const maxH = 800;
@@ -138,24 +139,10 @@ export default function CreateCharacterPage() {
           setFullImageUrl(fullCompressed);
         }
 
-        // 2. Malý profilový medailonek (200x200 px zaměřený na horní část / obličej postavy)
-        const size = 200;
-        const faceCanvas = document.createElement('canvas');
-        faceCanvas.width = size;
-        faceCanvas.height = size;
-        const faceCtx = faceCanvas.getContext('2d');
-        if (faceCtx) {
-          const minSide = Math.min(img.width, img.height);
-          const sx = (img.width - minSide) / 2;
-          // Zaměříme horní část (cca 12 % odshora), kde bývá hlava/obličej postavy
-          const sy = Math.max(0, (img.height - minSide) * 0.12);
-
-          faceCtx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-
-          let faceCompressed = faceCanvas.toDataURL('image/webp', 0.82);
-          if (!faceCompressed.startsWith('data:image/webp')) {
-            faceCompressed = faceCanvas.toDataURL('image/jpeg', 0.82);
-          }
+        // 2. Automatická detekce obličeje a výřez detailního medailonku (200x200 px)
+        const faceBox = await detectFaceCropBox(img);
+        const faceCompressed = renderFaceCropDataUrl(img, faceBox);
+        if (faceCompressed) {
           setAvatarUrl(faceCompressed);
         }
 

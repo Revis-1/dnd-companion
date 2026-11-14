@@ -29,8 +29,10 @@ import {
   ScrollText,
   Package,
   ArrowUpRight,
+  X,
 } from 'lucide-react';
 import MagicCard from '@/components/MagicCard';
+import { detectFaceCropBox, renderFaceCropDataUrl, FaceCropBox } from '@/lib/image/faceCrop';
 
 interface PersonalItem {
   id: string;
@@ -61,6 +63,15 @@ export default function CharacterSheetPage() {
   const [newItemQty, setNewItemQty] = useState(1);
   const [newItemType, setNewItemType] = useState<PersonalItem['item_type']>('item');
 
+  // Modal pro ruční doladění / kliknutí na obličej v portrétu
+  const [showFaceModal, setShowFaceModal] = useState(false);
+  const [faceCrop, setFaceCrop] = useState<FaceCropBox>({
+    centerX: 0.45,
+    centerY: 0.16,
+    zoomSize: 0.3,
+  });
+  const [facePreviewUrl, setFacePreviewUrl] = useState<string>('');
+
   useEffect(() => {
     if (!id) return;
 
@@ -73,6 +84,37 @@ export default function CharacterSheetPage() {
 
       if (data) {
         setCharacter(data);
+
+        // Automatická detekce obličeje pro již vytvořené postavy (např. Villi Sněhošlap),
+        // které měly dříve v avatar_url uloženou celou postavu místo detailu obličeje
+        const sourceImgUrl = data.full_image_url || data.avatar_url;
+        if (sourceImgUrl && (!data.full_image_url || data.avatar_url === data.full_image_url)) {
+          const img = new Image();
+          img.onload = async () => {
+            const detected = await detectFaceCropBox(img);
+            const croppedFace = renderFaceCropDataUrl(img, detected);
+            if (croppedFace) {
+              setCharacter((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      full_image_url: sourceImgUrl,
+                      avatar_url: croppedFace,
+                    }
+                  : prev
+              );
+              await supabase
+                .from('characters')
+                .update({
+                  full_image_url: sourceImgUrl,
+                  avatar_url: croppedFace,
+                })
+                .eq('id', data.id);
+            }
+          };
+          img.src = sourceImgUrl;
+        }
+
         if (data.campaign_id) {
           const { data: loot } = await supabase
             .from('loot_items')
@@ -277,7 +319,7 @@ export default function CharacterSheetPage() {
     });
   };
 
-  // --- NAHRÁVÁNÍ OBRÁZKŮ (CELÁ POSTAVA + PROFILOVÝ OBLIČEJ) ---
+  // --- NAHRÁVÁNÍ OBRÁZKŮ (CELÁ POSTAVA + AUTOMATICKÁ DETEKCE OBLIČEJE) ---
   const handleFullImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
@@ -308,25 +350,10 @@ export default function CharacterSheetPage() {
           fullCompressed = fullCanvas.toDataURL('image/jpeg', 0.82);
         }
 
-        // 2. Pokud postava ještě nemá profilový obličej, vyřízneme ho z horní části
-        let faceCompressed = character.avatar_url;
-        if (!faceCompressed) {
-          const size = 200;
-          const faceCanvas = document.createElement('canvas');
-          faceCanvas.width = size;
-          faceCanvas.height = size;
-          const faceCtx = faceCanvas.getContext('2d');
-          if (faceCtx) {
-            const minSide = Math.min(img.width, img.height);
-            const sx = (img.width - minSide) / 2;
-            const sy = Math.max(0, (img.height - minSide) * 0.12);
-            faceCtx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-            faceCompressed = faceCanvas.toDataURL('image/webp', 0.82);
-            if (!faceCompressed.startsWith('data:image/webp')) {
-              faceCompressed = faceCanvas.toDataURL('image/jpeg', 0.82);
-            }
-          }
-        }
+        // 2. Automaticky detekujeme obličej na nově nahrané fotce a vyřízneme detail do medailonku
+        const detectedBox = await detectFaceCropBox(img);
+        setFaceCrop(detectedBox);
+        const faceCompressed = renderFaceCropDataUrl(img, detectedBox) || fullCompressed;
 
         await updateCharacterFields({
           full_image_url: fullCompressed,
@@ -340,6 +367,45 @@ export default function CharacterSheetPage() {
     reader.readAsDataURL(file);
   };
 
+  // Otevření modalu pro kliknutí na obličej v portrétu (nebo automatickou detekci)
+  const handleOpenFacePicker = () => {
+    const src = character.full_image_url || character.avatar_url;
+    if (!src) return;
+    setShowFaceModal(true);
+
+    const img = new Image();
+    img.onload = async () => {
+      const detected = await detectFaceCropBox(img);
+      setFaceCrop(detected);
+      setFacePreviewUrl(renderFaceCropDataUrl(img, detected));
+    };
+    img.src = src;
+  };
+
+  const updateFacePreviewFromCrop = (nextCrop: FaceCropBox) => {
+    setFaceCrop(nextCrop);
+    const src = character.full_image_url || character.avatar_url;
+    if (!src) return;
+    const img = new Image();
+    img.onload = () => {
+      setFacePreviewUrl(renderFaceCropDataUrl(img, nextCrop));
+    };
+    img.src = src;
+  };
+
+  const handleClickOnPortraitToFocusFace = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = Math.min(0.95, Math.max(0.05, (e.clientX - rect.left) / rect.width));
+    const cy = Math.min(0.95, Math.max(0.05, (e.clientY - rect.top) / rect.height));
+    updateFacePreviewFromCrop({ ...faceCrop, centerX: cx, centerY: cy });
+  };
+
+  const handleSaveCroppedFace = async () => {
+    if (!facePreviewUrl) return;
+    await updateCharacterFields({ avatar_url: facePreviewUrl });
+    setShowFaceModal(false);
+  };
+
   const handleFaceAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
@@ -348,24 +414,12 @@ export default function CharacterSheetPage() {
     reader.onload = (event) => {
       const img = new Image();
       img.onload = async () => {
-        const size = 200;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const minSide = Math.min(img.width, img.height);
-        const sx = (img.width - minSide) / 2;
-        const sy = Math.max(0, (img.height - minSide) * 0.12);
-        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-
-        let compressed = canvas.toDataURL('image/webp', 0.82);
-        if (!compressed.startsWith('data:image/webp')) {
-          compressed = canvas.toDataURL('image/jpeg', 0.82);
+        const detected = await detectFaceCropBox(img);
+        const compressed = renderFaceCropDataUrl(img, detected);
+        if (compressed) {
+          await updateCharacterFields({ avatar_url: compressed });
+          setShowFaceModal(false);
         }
-
-        await updateCharacterFields({ avatar_url: compressed });
       };
       if (typeof event.target?.result === 'string') {
         img.src = event.target.result;
@@ -538,29 +592,40 @@ export default function CharacterSheetPage() {
         <div className="lg:col-span-7 space-y-5">
           {/* Hlavička hrdiny s kulatým medailonkem obličeje */}
           <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-2xl">
-            <label
-              title="Kliknutím změníte profilový medailonek (obličej)"
-              className="relative group w-16 h-16 rounded-full bg-white/5 border-2 border-white/20 hover:border-white/50 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer transition-all"
-            >
-              {character.avatar_url ? (
-                <img
-                  src={character.avatar_url}
-                  alt="Profil"
-                  className="w-full h-full object-cover object-top"
-                />
-              ) : (
+            {fullPortraitSrc ? (
+              <button
+                type="button"
+                onClick={handleOpenFacePicker}
+                title="Kliknutím upravíte výřez obličeje z portrétu"
+                className="relative group w-16 h-16 rounded-full bg-white/5 border-2 border-white/20 hover:border-white/50 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer transition-all"
+              >
+                {character.avatar_url ? (
+                  <img
+                    src={character.avatar_url}
+                    alt="Profil"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Shield className="w-7 h-7 text-zinc-400" />
+                )}
+                <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[9px] text-zinc-200 font-bold text-center leading-tight px-1">
+                  Upravit obličej
+                </div>
+              </button>
+            ) : (
+              <label
+                title="Kliknutím nahrajete profilový obličej"
+                className="relative group w-16 h-16 rounded-full bg-white/5 border-2 border-white/20 hover:border-white/50 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer transition-all"
+              >
                 <Shield className="w-7 h-7 text-zinc-400" />
-              )}
-              <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[9px] text-zinc-200 font-bold text-center leading-tight px-1">
-                Obličej
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFaceAvatarUpload}
-                className="hidden"
-              />
-            </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFaceAvatarUpload}
+                  className="hidden"
+                />
+              </label>
+            )}
 
             <div className="flex-1 min-w-0 space-y-1">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -991,6 +1056,114 @@ export default function CharacterSheetPage() {
           </div>
         )}
       </div>
+      {/* Modal pro výběr / doladění obličeje přímo z portrétu postavy */}
+      {showFaceModal && fullPortraitSrc && (
+        <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900/90 border border-white/15 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setShowFaceModal(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <h3 className="text-sm font-bold text-white font-fantasy uppercase tracking-wider">
+                Výběr obličeje do medailonku
+              </h3>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Klikněte přímo na obličej v obrázku níže pro vycentrování výřezu:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-12 gap-4 items-center">
+              {/* Interaktivní portrét pro kliknutí na obličej */}
+              <div
+                onClick={handleClickOnPortraitToFocusFace}
+                className="col-span-8 relative rounded-xl overflow-hidden border border-white/15 cursor-crosshair select-none bg-zinc-950"
+              >
+                <img
+                  src={fullPortraitSrc}
+                  alt="Portrét"
+                  className="w-full h-auto block pointer-events-none"
+                />
+                {/* Značka vybraného středu obličeje */}
+                <div
+                  className="pointer-events-none absolute w-12 h-12 -ml-6 -mt-6 rounded-full border-2 border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)]"
+                  style={{
+                    left: `${faceCrop.centerX * 100}%`,
+                    top: `${faceCrop.centerY * 100}%`,
+                  }}
+                />
+              </div>
+
+              {/* Živý náhled kulatého medailonku + Zoom */}
+              <div className="col-span-4 flex flex-col items-center space-y-3 text-center">
+                <span className="text-[11px] text-zinc-400 font-semibold">Náhled profilu:</span>
+                <div className="w-20 h-20 rounded-full border-2 border-white/30 overflow-hidden shadow-xl bg-zinc-950">
+                  {facePreviewUrl && (
+                    <img
+                      src={facePreviewUrl}
+                      alt="Náhled obličeje"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+
+                <div className="w-full space-y-1 pt-2">
+                  <label className="text-[10px] text-zinc-400 block">
+                    Velikost výřezu (Zoom)
+                  </label>
+                  <input
+                    type="range"
+                    min="0.16"
+                    max="0.65"
+                    step="0.02"
+                    value={faceCrop.zoomSize}
+                    onChange={(e) =>
+                      updateFacePreviewFromCrop({
+                        ...faceCrop,
+                        zoomSize: parseFloat(e.target.value),
+                      })
+                    }
+                    className="w-full accent-zinc-200 cursor-pointer"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
+              <label className="cursor-pointer text-xs text-zinc-400 hover:text-white underline">
+                <span>Nahrát jiný soubor...</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFaceAvatarUpload}
+                  className="hidden"
+                />
+              </label>
+
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFaceModal(false)}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-300"
+                >
+                  Zrušit
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveCroppedFace}
+                  className="px-5 py-2 rounded-xl bg-zinc-200 text-zinc-900 hover:bg-white font-bold text-xs transition"
+                >
+                  Uložit obličej
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
