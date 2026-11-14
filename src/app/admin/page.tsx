@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, usernameToEmail } from '@/lib/supabase/client';
 import { Profile, Campaign } from '@/types/database';
-import { ShieldAlert, UserPlus, KeyRound, Users, Check, AlertCircle } from 'lucide-react';
+import { CLASSES_2024, SPECIES_2024 } from '@/lib/dnd/rules2024';
+import { ShieldAlert, UserPlus, KeyRound, Users, Check, AlertCircle, Sword, Sparkles } from 'lucide-react';
 
 export default function MasterAdminPage() {
   const router = useRouter();
@@ -248,6 +249,130 @@ export default function MasterAdminPage() {
               <span className="text-zinc-500 font-mono text-[11px]">ID: {p.id.slice(0, 8)}...</span>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Dvě přehledové tabulky: 1) Povolání & Podtřídy, 2) Rasy & Podrasy */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Tabulka 1: Všechna Povolání (Classes) a jejich Podtřídy (Subclasses) */}
+        <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl space-y-4 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 tracking-wider font-fantasy">
+              <Sword className="w-4 h-4 text-zinc-300" />
+              <span>Přehled Povolání & Podtříd ({CLASSES_2024.length})</span>
+            </h3>
+            <span className="text-[11px] text-zinc-400">D&D 2024 Kompendium</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-white/10 text-zinc-400 uppercase text-[10px] tracking-wider">
+                  <th className="py-2.5 pr-3">Povolání</th>
+                  <th className="py-2.5 px-2">Hit Die</th>
+                  <th className="py-2.5 pl-2">Podtřídy (Subclasses – 3. úroveň)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {CLASSES_2024.map((cls) => (
+                  <tr key={cls.name} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 pr-3 align-top">
+                      <div className="font-bold text-white font-fantasy text-sm">{cls.name}</div>
+                      <div className="text-[11px] text-zinc-400 mt-0.5">
+                        Hlavní: <span className="text-zinc-300">{cls.primaryStat}</span>
+                      </div>
+                      <div className="text-[10px] text-zinc-500">
+                        Záchrany: {cls.savingThrows.join(', ')}
+                      </div>
+                    </td>
+                    <td className="py-3 px-2 align-top whitespace-nowrap">
+                      <span className="px-2 py-0.5 rounded-md bg-red-950/40 border border-red-500/30 text-red-300 font-bold text-[11px]">
+                        k{cls.hitDie}
+                      </span>
+                    </td>
+                    <td className="py-3 pl-2 align-top">
+                      <div className="flex flex-wrap gap-1.5">
+                        {cls.subclassesAtLevel3.map((sub) => (
+                          <span
+                            key={sub}
+                            className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-200 text-[11px] font-medium"
+                          >
+                            {sub}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Tabulka 2: Všechny Rasy (Species) a jejich Podrasy / Rodové linie */}
+        <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl space-y-4 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 tracking-wider font-fantasy">
+              <Sparkles className="w-4 h-4 text-zinc-300" />
+              <span>Přehled Ras & Podras / Linií ({SPECIES_2024.length})</span>
+            </h3>
+            <span className="text-[11px] text-zinc-400">D&D 2024 Kompendium</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-white/10 text-zinc-400 uppercase text-[10px] tracking-wider">
+                  <th className="py-2.5 pr-3">Rasa</th>
+                  <th className="py-2.5 px-2">Rychlost</th>
+                  <th className="py-2.5 pl-2">Podrasy / Rodové linie (Lineages)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {SPECIES_2024.map((sp) => (
+                  <tr key={sp.name} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 pr-3 align-top">
+                      <div className="font-bold text-white font-fantasy text-sm">{sp.name}</div>
+                      <div className="text-[10px] text-zinc-400 mt-0.5 space-y-0.5">
+                        {sp.traits.map((t, i) => (
+                          <div key={i}>• {t}</div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="py-3 px-2 align-top whitespace-nowrap">
+                      <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-zinc-300 font-semibold text-[11px]">
+                        {sp.speed} ft
+                      </span>
+                      <div className="text-[10px] text-zinc-500 mt-1">{sp.size}</div>
+                    </td>
+                    <td className="py-3 pl-2 align-top">
+                      {sp.lineages && sp.lineages.length > 0 ? (
+                        <div className="space-y-1.5">
+                          {sp.lineages.map((lin) => (
+                            <div
+                              key={lin.name}
+                              className="p-2 rounded-lg bg-white/5 border border-white/10"
+                            >
+                              <div className="font-bold text-zinc-100 text-[11px]">
+                                {lin.name}
+                              </div>
+                              <div className="text-[10px] text-zinc-400 leading-snug mt-0.5">
+                                {lin.description}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-zinc-500 italic">
+                          Sjednocená rasa v D&D 2024 (bez podras)
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
