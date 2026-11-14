@@ -33,6 +33,11 @@ import {
 } from 'lucide-react';
 import MagicCard from '@/components/MagicCard';
 import { detectFaceCropBox, renderFaceCropDataUrl, FaceCropBox } from '@/lib/image/faceCrop';
+import {
+  CompendiumItem2024,
+  searchCompendiumItems,
+  DndEquipSlotKey,
+} from '@/lib/dnd/items2024';
 
 interface PersonalItem {
   id: string;
@@ -40,6 +45,7 @@ interface PersonalItem {
   quantity: number;
   item_type: 'weapon' | 'armor' | 'potion' | 'scroll' | 'item';
   is_equipped: boolean;
+  stats?: string;
 }
 
 interface CoinPurse {
@@ -88,6 +94,8 @@ export default function CharacterSheetPage() {
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState(1);
   const [newItemType, setNewItemType] = useState<PersonalItem['item_type']>('item');
+  const [newItemStats, setNewItemStats] = useState<string>('');
+  const [showItemSuggestions, setShowItemSuggestions] = useState(false);
 
   // Modal pro ruční doladění / kliknutí na obličej v portrétu
   const [showFaceModal, setShowFaceModal] = useState(false);
@@ -523,19 +531,39 @@ export default function CharacterSheetPage() {
   };
 
   // --- BATOH / INVENTÁŘ ---
+  const handleSelectCompendiumSuggestion = (compItem: CompendiumItem2024) => {
+    setNewItemName(compItem.name);
+    const mappedType: PersonalItem['item_type'] =
+      compItem.category === 'gear' ? 'item' : compItem.category;
+    setNewItemType(mappedType);
+    setNewItemStats(compItem.stats);
+    setShowItemSuggestions(false);
+  };
+
   const handleAddPersonalItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItemName.trim()) return;
+    // Zkontrolujeme, zda název přímo neodpovídá položce z kompendia (pro automatické doplnění statistik)
+    const matchedComp = searchCompendiumItems(newItemName.trim(), undefined, 1)[0];
+    const itemStats =
+      newItemStats ||
+      (matchedComp && matchedComp.name.toLowerCase() === newItemName.trim().toLowerCase()
+        ? matchedComp.stats
+        : undefined);
+
     const item: PersonalItem = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name: newItemName.trim(),
       quantity: Math.max(1, newItemQty),
       item_type: newItemType,
       is_equipped: false,
+      stats: itemStats,
     };
     await saveInventoryMeta([item, ...personalItems], coins);
     setNewItemName('');
     setNewItemQty(1);
+    setNewItemStats('');
+    setShowItemSuggestions(false);
   };
 
   const handleToggleEquip = async (itemId: string) => {
@@ -1121,15 +1149,57 @@ export default function CharacterSheetPage() {
           </div>
         </div>
 
-        {/* Formulář pro přidání předmětu do batohu */}
-        <form onSubmit={handleAddPersonalItem} className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 text-xs">
-          <input
-            type="text"
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="Přidat předmět do batohu (např. Dlouhý luk, Lektvar léčení, Lano 50 ft)..."
-            className="sm:col-span-6 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
-          />
+        {/* Formulář pro přidání předmětu do batohu s chytrým našeptávačem D&D 2024 */}
+        <form onSubmit={handleAddPersonalItem} className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 text-xs relative">
+          <div className="sm:col-span-6 relative">
+            <input
+              type="text"
+              value={newItemName}
+              onFocus={() => setShowItemSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowItemSuggestions(false), 180)}
+              onChange={(e) => {
+                setNewItemName(e.target.value);
+                setNewItemStats('');
+                setShowItemSuggestions(true);
+              }}
+              placeholder="Začněte psát (např. Dlouhý luk, Lektvar léčení, Kožená zbroj)..."
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+            />
+
+            {/* Našeptávač předmětů z D&D 2024 kompendia */}
+            {showItemSuggestions && (
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-zinc-950/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-40 max-h-64 overflow-y-auto divide-y divide-white/5">
+                {searchCompendiumItems(newItemName, undefined, 8).map((comp) => (
+                  <button
+                    key={comp.id}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleSelectCompendiumSuggestion(comp);
+                    }}
+                    className="w-full text-left px-3.5 py-2.5 hover:bg-white/10 flex items-center justify-between gap-2 transition"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-white truncate">
+                        {comp.name}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 truncate">
+                        {comp.stats}
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-white/5 border border-white/10 text-zinc-300 flex-shrink-0">
+                      {comp.cost}
+                    </span>
+                  </button>
+                ))}
+                {searchCompendiumItems(newItemName, undefined, 8).length === 0 && (
+                  <div className="px-3.5 py-2.5 text-[11px] text-zinc-400">
+                    Vlastní předmět „<strong className="text-white">{newItemName}</strong>“ — klikněte na <strong>+ Přidat</strong>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <select
             value={newItemType}
             onChange={(e) => setNewItemType(e.target.value as PersonalItem['item_type'])}
@@ -1188,6 +1258,11 @@ export default function CharacterSheetPage() {
                         </span>
                       )}
                     </div>
+                    {item.stats && (
+                      <div className="text-[10px] text-zinc-300 truncate mt-0.5">
+                        {item.stats}
+                      </div>
+                    )}
                     <span className="text-[11px] text-zinc-400">Množství: {item.quantity}×</span>
                   </div>
                 </div>
@@ -1410,7 +1485,7 @@ export default function CharacterSheetPage() {
                   type="text"
                   value={customSlotItemName}
                   onChange={(e) => setCustomSlotItemName(e.target.value)}
-                  placeholder={`Např. ${activeEquipSlot.hint}...`}
+                  placeholder={`Hledat (např. ${activeEquipSlot.hint})...`}
                   autoFocus
                   className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-950/90 border border-white/15 text-white text-sm focus:outline-none focus:border-white/40"
                 />
@@ -1422,6 +1497,39 @@ export default function CharacterSheetPage() {
                 </button>
               </div>
             </form>
+
+            {/* Návrhy z kompendia D&D 2024 pro tento slot */}
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block">
+                Doporučené předměty z D&D 2024 pro tento slot:
+              </span>
+              <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                {searchCompendiumItems(
+                  customSlotItemName,
+                  activeEquipSlot.key as DndEquipSlotKey,
+                  6
+                ).map((comp) => (
+                  <button
+                    key={comp.id}
+                    type="button"
+                    onClick={() => handleAssignSlotItem(activeEquipSlot.key, comp.name)}
+                    className="w-full text-left px-3 py-2 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-between gap-2 transition"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-zinc-100 truncate">
+                        {comp.name}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 truncate">
+                        {comp.stats}
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-zinc-300 font-semibold flex-shrink-0">
+                      Nasadit →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Rychlý výběr z batohu */}
             {(personalItems.length > 0 || campaignLoot.length > 0) && (
