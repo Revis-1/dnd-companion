@@ -114,6 +114,9 @@ export default function CharacterSheetPage() {
   } | null>(null);
   const [customSlotItemName, setCustomSlotItemName] = useState('');
 
+  // Modal pro Záchranné hody proti smrti (automaticky vyskočí, když HP klesne na 0)
+  const [showDeathSaveModal, setShowDeathSaveModal] = useState(false);
+
   useEffect(() => {
     if (!id) return;
 
@@ -126,6 +129,9 @@ export default function CharacterSheetPage() {
 
       if (data) {
         setCharacter(data);
+        if (data.hp_current <= 0) {
+          setShowDeathSaveModal(true);
+        }
 
         // Automatická detekce obličeje pro již vytvořené postavy (např. Villi Sněhošlap),
         // které měly dříve v avatar_url uloženou celou postavu místo detailu obličeje
@@ -188,6 +194,11 @@ export default function CharacterSheetPage() {
           // Proto vždy zachováme předchozí avatar_url a full_image_url, pokud v payloadu chybí!
           setCharacter((prev) => {
             if (!prev) return updated;
+            if (prev.hp_current > 0 && updated.hp_current <= 0) {
+              setShowDeathSaveModal(true);
+            } else if (updated.hp_current > 0) {
+              setShowDeathSaveModal(false);
+            }
             return {
               ...prev,
               ...updated,
@@ -330,6 +341,9 @@ export default function CharacterSheetPage() {
     }
 
     await updateCharacterFields({ hp_current: newHp, temp_hp: newTempHp });
+    if (newHp <= 0) {
+      setShowDeathSaveModal(true);
+    }
   };
 
   const handleHeal = async () => {
@@ -339,6 +353,9 @@ export default function CharacterSheetPage() {
       hp_current: newHp,
       death_saves: { successes: 0, failures: 0 },
     });
+    if (newHp > 0) {
+      setShowDeathSaveModal(false);
+    }
   };
 
   const handleSetTempHp = async () => {
@@ -353,6 +370,7 @@ export default function CharacterSheetPage() {
       temp_hp: 0,
       death_saves: { successes: 0, failures: 0 },
     });
+    setShowDeathSaveModal(false);
   };
 
   // --- LEVEL UP & SUBCLASS ---
@@ -419,6 +437,7 @@ export default function CharacterSheetPage() {
       hp_current: Math.max(1, character.hp_current),
       death_saves: { successes: 0, failures: 0 },
     });
+    setShowDeathSaveModal(false);
   };
 
   // --- NAHRÁVÁNÍ OBRÁZKŮ (CELÁ POSTAVA + AUTOMATICKÁ DETEKCE OBLIČEJE) ---
@@ -909,44 +928,57 @@ export default function CharacterSheetPage() {
           })}
         </div>
 
-        {/* Životy (HP Bar) & Záchranné hody */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          {/* Live HP Box (7/12) */}
-          <div className="md:col-span-7 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5 font-fantasy tracking-wider">
-                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-                <span>Životy (HP Bar)</span>
-              </h3>
+        {/* Životy (HP Bar) */}
+        <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl">
+          <div className="flex flex-wrap justify-between items-center gap-2">
+            <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5 font-fantasy tracking-wider">
+              <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+              <span>Životy (HP Bar)</span>
+            </h3>
+            <div className="flex items-center space-x-2">
+              {character.hp_current <= 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowDeathSaveModal(true)}
+                  className="text-xs bg-red-950/70 hover:bg-red-900/80 border border-red-500/50 text-red-200 px-3 py-1 rounded-xl font-bold flex items-center space-x-1.5 animate-pulse transition"
+                >
+                  <Skull className="w-3.5 h-3.5 text-red-400" />
+                  <span>
+                    Záchranné hody ({character.death_saves.successes}✓ / {character.death_saves.failures}✗)
+                  </span>
+                </button>
+              )}
               {character.temp_hp > 0 && (
                 <span className="text-xs bg-blue-950/50 border border-blue-500/40 text-blue-300 px-2.5 py-0.5 rounded-full font-bold">
                   +{character.temp_hp} Dočasné HP
                 </span>
               )}
             </div>
+          </div>
 
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-white text-lg">
-                  {character.hp_current} / {character.hp_max} HP
-                </span>
-                <span className="text-zinc-400">{Math.round(hpPercent)}%</span>
-              </div>
-              <div className="w-full bg-white/5 rounded-full h-3.5 overflow-hidden border border-white/10 p-0.5">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    hpPercent > 50
-                      ? 'bg-emerald-500'
-                      : hpPercent > 20
-                      ? 'bg-zinc-300'
-                      : 'bg-red-600'
-                  }`}
-                  style={{ width: `${hpPercent}%` }}
-                />
-              </div>
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs font-bold">
+              <span className="text-white text-lg">
+                {character.hp_current} / {character.hp_max} HP
+              </span>
+              <span className="text-zinc-400">{Math.round(hpPercent)}%</span>
             </div>
+            <div className="w-full bg-white/5 rounded-full h-3.5 overflow-hidden border border-white/10 p-0.5">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${
+                  hpPercent > 50
+                    ? 'bg-emerald-500'
+                    : hpPercent > 20
+                    ? 'bg-zinc-300'
+                    : 'bg-red-600'
+                }`}
+                style={{ width: `${hpPercent}%` }}
+              />
+            </div>
+          </div>
 
-            <div className="flex items-center space-x-2 pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <div className="flex items-center space-x-2 flex-1">
               <input
                 type="number"
                 min="1"
@@ -968,132 +1000,22 @@ export default function CharacterSheetPage() {
               </button>
             </div>
 
-            <div className="flex items-center space-x-2 pt-2 border-t border-white/10 text-xs">
+            <div className="flex items-center space-x-2 sm:border-l sm:border-white/10 sm:pl-4 text-xs">
               <span className="text-zinc-400">Dočasné HP:</span>
               <input
                 type="number"
                 min="0"
                 value={tempHpInput}
                 onChange={(e) => setTempHpInput(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-14 bg-white/5 border border-white/10 rounded-lg text-center py-1 text-white focus:outline-none focus:border-white/30"
+                className="w-14 bg-white/5 border border-white/10 rounded-lg text-center py-1.5 text-white focus:outline-none focus:border-white/30"
               />
               <button
                 onClick={handleSetTempHp}
-                className="bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 px-3 py-1 rounded-lg transition"
+                className="bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 px-3 py-1.5 rounded-lg transition"
               >
                 Nastavit Temp HP
               </button>
             </div>
-          </div>
-
-          {/* Záchranné hody proti smrti (Death Saves – 5/12) */}
-          <div className="md:col-span-5 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5 font-fantasy tracking-wider">
-                <Skull className="w-4 h-4 text-zinc-400" />
-                <span>Záchranné hody (0 HP)</span>
-              </h3>
-              {(character.death_saves.successes > 0 || character.death_saves.failures > 0) && (
-                <button
-                  onClick={handleResetDeathSaves}
-                  title="Vynulovat záchranné hody"
-                  className="text-[11px] text-zinc-400 hover:text-white flex items-center space-x-1 bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-0.5 rounded-lg transition"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Reset</span>
-                </button>
-              )}
-            </div>
-
-            <div className="space-y-2.5">
-              <div>
-                <span className="text-xs text-emerald-400 font-semibold block mb-1">
-                  Úspěchy ({character.death_saves.successes} / 3)
-                </span>
-                <div className="flex space-x-2">
-                  {[1, 2, 3].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => handleSetDeathSaveCount('success', num)}
-                      className={`w-8 h-8 rounded-xl border flex items-center justify-center text-xs font-bold transition ${
-                        num <= character.death_saves.successes
-                          ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
-                          : 'border-white/10 bg-white/5 text-zinc-500 hover:border-white/30'
-                      }`}
-                    >
-                      ✓
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <span className="text-xs text-red-400 font-semibold block mb-1">
-                  Selhání ({character.death_saves.failures} / 3)
-                </span>
-                <div className="flex space-x-2">
-                  {[1, 2, 3].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => handleSetDeathSaveCount('failure', num)}
-                      className={`w-8 h-8 rounded-xl border flex items-center justify-center text-xs font-bold transition ${
-                        num <= character.death_saves.failures
-                          ? 'bg-red-600 border-red-400 text-white shadow-[0_0_10px_rgba(239,68,68,0.4)]'
-                          : 'border-white/10 bg-white/5 text-zinc-500 hover:border-white/30'
-                      }`}
-                    >
-                      ✗
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Stav při 3 úspěších nebo 3 selháních */}
-            {character.death_saves.successes >= 3 ? (
-              <div className="p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-center space-y-1.5">
-                <p className="text-xs font-bold text-emerald-300">
-                  ✨ Postava je stabilizována (3 úspěchy)!
-                </p>
-                <button
-                  type="button"
-                  onClick={handleStabilizeAt1Hp}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-1.5 rounded-lg transition"
-                >
-                  Probrat se (1 HP) a resetovat hody
-                </button>
-              </div>
-            ) : character.death_saves.failures >= 3 ? (
-              <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/40 text-center space-y-1.5">
-                <p className="text-xs font-bold text-red-300">
-                  ☠ Postava padla (3 selhání)!
-                </p>
-                <button
-                  type="button"
-                  onClick={handleStabilizeAt1Hp}
-                  className="w-full bg-red-800/80 hover:bg-red-700 text-white font-bold text-xs py-1.5 rounded-lg transition"
-                >
-                  Oživit s 1 HP a resetovat
-                </button>
-              </div>
-            ) : (
-              <div className="flex space-x-2 pt-1">
-                <button
-                  onClick={() => handleDeathSave('success')}
-                  className="flex-1 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-800/50 text-emerald-300 text-xs py-1.5 rounded-lg transition font-bold"
-                >
-                  + Úspěch
-                </button>
-                <button
-                  onClick={() => handleDeathSave('failure')}
-                  className="flex-1 bg-red-950/40 hover:bg-red-900/50 border border-red-800/50 text-red-300 text-xs py-1.5 rounded-lg transition font-bold"
-                >
-                  + Selhání
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -1599,6 +1521,161 @@ export default function CharacterSheetPage() {
                 className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-300"
               >
                 Zavřít
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Automatické vyskakovací okno pro Záchranné hody proti smrti (při 0 HP) */}
+      {showDeathSaveModal && (
+        <div className="fixed inset-0 bg-zinc-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900/95 border border-red-500/30 rounded-2xl p-6 max-w-md w-full space-y-5 shadow-[0_0_40px_rgba(220,38,38,0.2)] relative">
+            <button
+              type="button"
+              onClick={() => setShowDeathSaveModal(false)}
+              title="Skrýt okno (lze znovu otevřít na liště životů)"
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center space-x-3">
+              <div className="w-11 h-11 rounded-xl bg-red-950/70 border border-red-500/40 flex items-center justify-center flex-shrink-0">
+                <Skull className="w-6 h-6 text-red-400" />
+              </div>
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-widest text-red-400">
+                  Postava je v bezvědomí (0 HP)
+                </div>
+                <h3 className="text-lg font-bold text-white font-fantasy uppercase tracking-wider">
+                  Záchranné hody proti smrti
+                </h3>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Na začátku každého svého tahu hoďte <strong>1d20</strong>. Hod <strong>10 nebo více</strong> je úspěch, nižší je selhání (hod 1 znamená 2 selhání, hod 20 okamžité probrání s 1 HP).
+            </p>
+
+            <div className="space-y-4 bg-zinc-950/60 border border-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-emerald-400 font-bold">
+                  Úspěchy ({character.death_saves.successes} / 3)
+                </span>
+                <div className="flex space-x-2">
+                  {[1, 2, 3].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => handleSetDeathSaveCount('success', num)}
+                      className={`w-9 h-9 rounded-xl border flex items-center justify-center text-sm font-bold transition ${
+                        num <= character.death_saves.successes
+                          ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                          : 'border-white/15 bg-white/5 text-zinc-500 hover:border-white/30'
+                      }`}
+                    >
+                      ✓
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                <span className="text-xs text-red-400 font-bold">
+                  Selhání ({character.death_saves.failures} / 3)
+                </span>
+                <div className="flex space-x-2">
+                  {[1, 2, 3].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => handleSetDeathSaveCount('failure', num)}
+                      className={`w-9 h-9 rounded-xl border flex items-center justify-center text-sm font-bold transition ${
+                        num <= character.death_saves.failures
+                          ? 'bg-red-600 border-red-400 text-white shadow-[0_0_12px_rgba(239,68,68,0.5)]'
+                          : 'border-white/15 bg-white/5 text-zinc-500 hover:border-white/30'
+                      }`}
+                    >
+                      ✗
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Výsledek při 3 úspěších / 3 selháních nebo rychlá tlačítka */}
+            {character.death_saves.successes >= 3 ? (
+              <div className="p-3.5 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-center space-y-2.5">
+                <p className="text-xs font-bold text-emerald-300">
+                  ✨ Postava je stabilizována (3 úspěchy)!
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStabilizeAt1Hp}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg"
+                >
+                  Probrat se (1 HP) a zavřít
+                </button>
+              </div>
+            ) : character.death_saves.failures >= 3 ? (
+              <div className="p-3.5 rounded-xl bg-red-950/70 border border-red-500/40 text-center space-y-2.5">
+                <p className="text-xs font-bold text-red-300">
+                  ☠ Postava padla (3 selhání)!
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStabilizeAt1Hp}
+                  className="w-full bg-red-800/80 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg"
+                >
+                  Oživit postavu s 1 HP a resetovat
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => handleDeathSave('success')}
+                  className="bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-200 font-bold text-xs py-2.5 rounded-xl transition"
+                >
+                  + Přidat Úspěch
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeathSave('failure')}
+                  className="bg-red-950/50 hover:bg-red-900/60 border border-red-500/40 text-red-200 font-bold text-xs py-2.5 rounded-xl transition"
+                >
+                  + Přidat Selhání
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={handleStabilizeAt1Hp}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline"
+                >
+                  Hod 20 / Vyléčit na 1 HP
+                </button>
+                {(character.death_saves.successes > 0 || character.death_saves.failures > 0) && (
+                  <button
+                    type="button"
+                    onClick={handleResetDeathSaves}
+                    className="text-xs text-zinc-400 hover:text-white flex items-center space-x-1"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Vynulovat</span>
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeathSaveModal(false)}
+                className="px-4 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-300"
+              >
+                Skrýt
               </button>
             </div>
           </div>
