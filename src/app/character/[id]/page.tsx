@@ -102,6 +102,7 @@ export default function CharacterSheetPage() {
   const [activeEquipSlot, setActiveEquipSlot] = useState<{
     key: EquipSlotKey;
     label: string;
+    hint?: string;
   } | null>(null);
   const [customSlotItemName, setCustomSlotItemName] = useState('');
 
@@ -732,7 +733,7 @@ export default function CharacterSheetPage() {
                 <div
                   key={slot.key}
                   onClick={() => {
-                    setActiveEquipSlot({ key: slot.key, label: slot.label });
+                    setActiveEquipSlot({ key: slot.key, label: slot.label, hint: slot.hint });
                     setCustomSlotItemName(equippedItem || '');
                   }}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 group relative ${
@@ -814,7 +815,7 @@ export default function CharacterSheetPage() {
                 <div
                   key={slot.key}
                   onClick={() => {
-                    setActiveEquipSlot({ key: slot.key, label: slot.label });
+                    setActiveEquipSlot({ key: slot.key, label: slot.label, hint: slot.hint });
                     setCustomSlotItemName(equippedItem || '');
                   }}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 group relative ${
