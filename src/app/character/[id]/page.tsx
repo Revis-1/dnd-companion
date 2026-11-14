@@ -48,6 +48,32 @@ interface CoinPurse {
   cp: number;
 }
 
+export type EquipSlotKey =
+  | 'head'
+  | 'armor'
+  | 'cloak'
+  | 'gloves'
+  | 'main_hand'
+  | 'off_hand'
+  | 'accessory'
+  | 'boots';
+
+export type EquippedSlotsMap = Partial<Record<EquipSlotKey, string>>;
+
+const LEFT_EQUIP_SLOTS: { key: EquipSlotKey; label: string; hint: string }[] = [
+  { key: 'head', label: 'Hlava / Přilba', hint: 'Helma, čelenka, kápě' },
+  { key: 'armor', label: 'Zbroj / Hruď', hint: 'Kožená, kroužková, plátová...' },
+  { key: 'cloak', label: 'Plášť / Záda', hint: 'Plášť, toulec, batoh' },
+  { key: 'gloves', label: 'Rukavice / Paže', hint: 'Rukavice, nátepníky' },
+];
+
+const RIGHT_EQUIP_SLOTS: { key: EquipSlotKey; label: string; hint: string }[] = [
+  { key: 'main_hand', label: 'Hlavní zbraň', hint: 'Meč, sekera, hůl, dýka...' },
+  { key: 'off_hand', label: 'Druhá ruka / Luk', hint: 'Štít, luk, kuše, fokus...' },
+  { key: 'accessory', label: 'Amulet / Prsten', hint: 'Šperk, talisman, prsten' },
+  { key: 'boots', label: 'Boty / Obuv', hint: 'Holínky, elfí boty...' },
+];
+
 export default function CharacterSheetPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -71,6 +97,13 @@ export default function CharacterSheetPage() {
     zoomSize: 0.3,
   });
   const [facePreviewUrl, setFacePreviewUrl] = useState<string>('');
+
+  // Modal pro nasazení vybavení do konkrétního slotu okolo postavy
+  const [activeEquipSlot, setActiveEquipSlot] = useState<{
+    key: EquipSlotKey;
+    label: string;
+  } | null>(null);
+  const [customSlotItemName, setCustomSlotItemName] = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -195,18 +228,78 @@ export default function CharacterSheetPage() {
       .eq('id', character.id);
   };
 
-  // Čtení osobního batohu a měšce z JSONB pole spell_slots (funguje pro všechny postavy i bez kampaně)
+  // Čtení osobního batohu, měšce a slotů nasazené výbavy z JSONB pole spell_slots
   const rawMeta = (character.spell_slots || {}) as Record<string, any>;
   const personalItems: PersonalItem[] = Array.isArray(rawMeta._backpack) ? rawMeta._backpack : [];
   const coins: CoinPurse = rawMeta._coins || { gp: 15, sp: 0, cp: 0 };
+  const equippedSlots: EquippedSlotsMap = rawMeta._equipped_slots || {};
 
-  const saveInventoryMeta = async (newItems: PersonalItem[], newCoins: CoinPurse) => {
+  const saveInventoryMeta = async (
+    newItems: PersonalItem[],
+    newCoins: CoinPurse,
+    newSlots: EquippedSlotsMap = equippedSlots
+  ) => {
     const updatedSpellSlots = {
       ...rawMeta,
       _backpack: newItems,
       _coins: newCoins,
+      _equipped_slots: newSlots,
     };
     await updateCharacterFields({ spell_slots: updatedSpellSlots as any });
+  };
+
+  const handleAssignSlotItem = async (slotKey: EquipSlotKey, itemName: string) => {
+    const trimmed = itemName.trim();
+    if (!trimmed) return;
+    const nextSlots: EquippedSlotsMap = { ...equippedSlots, [slotKey]: trimmed };
+
+    // Pokud předmět ještě není v batohu, přidáme ho tam rovnou jako nasazený
+    let nextItems = [...personalItems];
+    const existingIdx = nextItems.findIndex(
+      (i) => i.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (existingIdx >= 0) {
+      nextItems[existingIdx] = { ...nextItems[existingIdx], is_equipped: true };
+    } else {
+      const inferredType: PersonalItem['item_type'] =
+        slotKey === 'main_hand' || slotKey === 'off_hand'
+          ? 'weapon'
+          : slotKey === 'armor' || slotKey === 'head'
+          ? 'armor'
+          : 'item';
+      nextItems = [
+        {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          name: trimmed,
+          quantity: 1,
+          item_type: inferredType,
+          is_equipped: true,
+        },
+        ...nextItems,
+      ];
+    }
+
+    await saveInventoryMeta(nextItems, coins, nextSlots);
+    setActiveEquipSlot(null);
+    setCustomSlotItemName('');
+  };
+
+  const handleClearSlot = async (slotKey: EquipSlotKey) => {
+    const removedName = equippedSlots[slotKey];
+    const nextSlots: EquippedSlotsMap = { ...equippedSlots };
+    delete nextSlots[slotKey];
+
+    // Pokud už není nasazen v žádném jiném slotu, odškrtneme is_equipped v batohu
+    const stillInOtherSlot = Object.values(nextSlots).some(
+      (v) => v && removedName && v.toLowerCase() === removedName.toLowerCase()
+    );
+    const nextItems = personalItems.map((it) =>
+      removedName && it.name.toLowerCase() === removedName.toLowerCase() && !stillInOtherSlot
+        ? { ...it, is_equipped: false }
+        : it
+    );
+
+    await saveInventoryMeta(nextItems, coins, nextSlots);
   };
 
   // --- ŽIVOTY & ODPOČINEK ---
@@ -554,312 +647,424 @@ export default function CharacterSheetPage() {
         </div>
       )}
 
-      {/* HLAVNÍ DVOUSLOUPCOVÝ LAYOUT: VLEVO VELKÁ POSTAVA, VPRAVO DENÍK */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEVÝ SLOUPEC (5/12): Velký portrét celé postavy */}
-        <div className="lg:col-span-5 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-3 shadow-2xl">
-          <div className="relative group w-full aspect-[3/4] rounded-xl bg-zinc-950/60 border border-white/10 overflow-hidden flex items-center justify-center">
-            {fullPortraitSrc ? (
+      {/* 1. HORNÍ KARTA PŘES CELOU ŠÍŘKU: Jméno postavy, profilový obličej a původ */}
+      <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-5 shadow-2xl">
+        {fullPortraitSrc ? (
+          <button
+            type="button"
+            onClick={handleOpenFacePicker}
+            title="Kliknutím upravíte výřez obličeje z portrétu"
+            className="relative group w-20 h-20 rounded-full bg-white/5 border-2 border-white/25 hover:border-white/60 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-xl cursor-pointer transition-all"
+          >
+            {character.avatar_url ? (
               <img
-                src={fullPortraitSrc}
-                alt={character.name}
-                className="w-full h-full object-cover object-top"
+                src={character.avatar_url}
+                alt="Profil"
+                className="w-full h-full object-cover"
               />
             ) : (
-              <div className="text-center p-6 space-y-3">
-                <Shield className="w-16 h-16 text-zinc-600 mx-auto" />
-                <p className="text-xs text-zinc-400">
-                  Zatím nebyl nahrán obrázek postavy.
-                </p>
-              </div>
+              <Shield className="w-8 h-8 text-zinc-400" />
             )}
+            <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] text-zinc-200 font-bold text-center leading-tight px-1">
+              Upravit obličej
+            </div>
+          </button>
+        ) : (
+          <label
+            title="Kliknutím nahrajete profilový obličej"
+            className="relative group w-20 h-20 rounded-full bg-white/5 border-2 border-white/25 hover:border-white/60 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-xl cursor-pointer transition-all"
+          >
+            <Shield className="w-8 h-8 text-zinc-400" />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFaceAvatarUpload}
+              className="hidden"
+            />
+          </label>
+        )}
 
-            {/* Tlačítko pro nahrání / změnu velké ilustrace celé postavy */}
-            <label className="absolute inset-x-3 bottom-3 bg-zinc-950/85 hover:bg-zinc-900 border border-white/15 text-zinc-200 hover:text-white rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center justify-center space-x-2 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity shadow-xl backdrop-blur-md">
-              <Upload className="w-4 h-4 text-zinc-300" />
-              <span>{fullPortraitSrc ? 'Změnit obrázek celé postavy' : 'Nahrát obrázek celé postavy'}</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFullImageUpload}
-                className="hidden"
-              />
-            </label>
+        <div className="flex-1 text-center sm:text-left min-w-0 space-y-1.5">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-wide font-fantasy">
+              <span className="bg-gradient-to-b from-zinc-100 to-zinc-500 bg-clip-text text-transparent">
+                {character.name}
+              </span>
+            </h1>
+            <span className="bg-white/10 border border-white/15 text-zinc-200 text-xs px-3.5 py-1 rounded-full font-bold">
+              Úroveň {character.level}
+            </span>
+          </div>
+          <p className="text-sm sm:text-base text-zinc-200 font-medium">
+            {character.species} • {character.class_name}{' '}
+            {character.subclass && <span className="text-zinc-300">({character.subclass})</span>}
+          </p>
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-zinc-400">
+            <span>
+              Původ: <strong className="text-zinc-200">{character.background}</strong>
+            </span>
+            <span>•</span>
+            <span>
+              Origin Feat: <strong className="text-zinc-200">{character.origin_feat}</strong>
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* PRAVÝ SLOUPEC (7/12): Hlavička s profilovým obličejem, Vlastnosti, Životy a Záchranné hody */}
-        <div className="lg:col-span-7 space-y-5">
-          {/* Hlavička hrdiny s kulatým medailonkem obličeje */}
-          <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-2xl">
-            {fullPortraitSrc ? (
-              <button
-                type="button"
-                onClick={handleOpenFacePicker}
-                title="Kliknutím upravíte výřez obličeje z portrétu"
-                className="relative group w-16 h-16 rounded-full bg-white/5 border-2 border-white/20 hover:border-white/50 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer transition-all"
-              >
-                {character.avatar_url ? (
-                  <img
-                    src={character.avatar_url}
-                    alt="Profil"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Shield className="w-7 h-7 text-zinc-400" />
-                )}
-                <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[9px] text-zinc-200 font-bold text-center leading-tight px-1">
-                  Upravit obličej
-                </div>
-              </button>
-            ) : (
-              <label
-                title="Kliknutím nahrajete profilový obličej"
-                className="relative group w-16 h-16 rounded-full bg-white/5 border-2 border-white/20 hover:border-white/50 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer transition-all"
-              >
-                <Shield className="w-7 h-7 text-zinc-400" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFaceAvatarUpload}
-                  className="hidden"
-                />
-              </label>
-            )}
+      {/* 2. PORTRÉT POSTAVY UPROSTŘED A OKOLO NĚJ SLOTY NA NASAZENÉ VYBAVENÍ */}
+      <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <h2 className="text-xs font-bold uppercase text-zinc-200 tracking-wider font-fantasy flex items-center space-x-2">
+            <Shield className="w-4 h-4 text-zinc-300" />
+            <span>Postava & Nasazená výbava (Klikněte na slot pro nasazení)</span>
+          </h2>
+          <span className="text-[11px] text-zinc-400">
+            Nasazeno: {Object.keys(equippedSlots).length} / 8 slotů
+          </span>
+        </div>
 
-            <div className="flex-1 min-w-0 space-y-1">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide font-fantasy truncate">
-                  <span className="bg-gradient-to-b from-zinc-100 to-zinc-500 bg-clip-text text-transparent">
-                    {character.name}
-                  </span>
-                </h1>
-                <span className="bg-white/10 border border-white/15 text-zinc-200 text-xs px-3 py-0.5 rounded-full font-bold">
-                  Úroveň {character.level}
-                </span>
-              </div>
-              <p className="text-sm text-zinc-200 font-medium">
-                {character.species} • {character.class_name}{' '}
-                {character.subclass && <span className="text-zinc-300">({character.subclass})</span>}
-              </p>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400">
-                <span>
-                  Původ: <strong className="text-zinc-200">{character.background}</strong>
-                </span>
-                <span>•</span>
-                <span>
-                  Origin Feat: <strong className="text-zinc-200">{character.origin_feat}</strong>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 6 Vlastností (Stats Grid) */}
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
-            {(['str', 'dex', 'con', 'int', 'wis', 'cha'] as const).map((s) => {
-              const val = character.stats[s];
-              const mod = calculateModifier(val);
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+          {/* Levé 4 sloty výbavy (Hlava, Zbroj, Plášť, Rukavice) */}
+          <div className="md:col-span-3 space-y-3 order-2 md:order-1">
+            {LEFT_EQUIP_SLOTS.map((slot) => {
+              const equippedItem = equippedSlots[slot.key];
               return (
                 <div
-                  key={s}
-                  className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-3 rounded-2xl text-center space-y-1 shadow-xl"
+                  key={slot.key}
+                  onClick={() => {
+                    setActiveEquipSlot({ key: slot.key, label: slot.label });
+                    setCustomSlotItemName(equippedItem || '');
+                  }}
+                  className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 group relative ${
+                    equippedItem
+                      ? 'bg-zinc-900/80 border-white/30 shadow-lg hover:border-white/50'
+                      : 'bg-white/[0.03] border-dashed border-white/15 hover:border-white/30 hover:bg-white/[0.06]'
+                  }`}
                 >
-                  <span className="text-[11px] font-bold uppercase text-zinc-400 font-fantasy">{s}</span>
-                  <div className="text-2xl font-black text-white">{val}</div>
-                  <div className="text-xs font-bold text-zinc-200 bg-white/5 rounded-lg py-0.5 border border-white/10">
-                    {formatModifier(mod)}
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-fantasy">
+                      {slot.label}
+                    </span>
+                    {equippedItem && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClearSlot(slot.key);
+                        }}
+                        title="Sundat ze slotu"
+                        className="text-zinc-400 hover:text-red-300 p-0.5 rounded transition"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
+                  {equippedItem ? (
+                    <div className="text-xs font-bold text-white truncate flex items-center space-x-1.5">
+                      <Shield className="w-3.5 h-3.5 text-zinc-300 flex-shrink-0" />
+                      <span className="truncate">{equippedItem}</span>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-zinc-500 group-hover:text-zinc-300 transition">
+                      + {slot.hint}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* Životy (HP Bar) & Záchranné hody */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            {/* Live HP Box (7/12) */}
-            <div className="md:col-span-7 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5 font-fantasy tracking-wider">
-                  <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-                  <span>Životy (HP Bar)</span>
-                </h3>
-                {character.temp_hp > 0 && (
-                  <span className="text-xs bg-blue-950/50 border border-blue-500/40 text-blue-300 px-2.5 py-0.5 rounded-full font-bold">
-                    +{character.temp_hp} Dočasné HP
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs font-bold">
-                  <span className="text-white text-lg">
-                    {character.hp_current} / {character.hp_max} HP
-                  </span>
-                  <span className="text-zinc-400">{Math.round(hpPercent)}%</span>
-                </div>
-                <div className="w-full bg-white/5 rounded-full h-3.5 overflow-hidden border border-white/10 p-0.5">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      hpPercent > 50
-                        ? 'bg-emerald-500'
-                        : hpPercent > 20
-                        ? 'bg-zinc-300'
-                        : 'bg-red-600'
-                    }`}
-                    style={{ width: `${hpPercent}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2 pt-1">
-                <input
-                  type="number"
-                  min="1"
-                  value={hpInput}
-                  onChange={(e) => setHpInput(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-16 bg-white/5 border border-white/10 rounded-xl text-center py-2 text-white font-bold text-sm focus:outline-none focus:border-white/30"
+          {/* Střed: Velký portrét celé postavy (6/12) */}
+          <div className="md:col-span-6 order-1 md:order-2 flex justify-center">
+            <div className="relative group w-full max-w-sm aspect-[3/4] rounded-2xl bg-zinc-950/60 border border-white/15 overflow-hidden flex items-center justify-center shadow-2xl">
+              {fullPortraitSrc ? (
+                <img
+                  src={fullPortraitSrc}
+                  alt={character.name}
+                  className="w-full h-full object-cover object-top"
                 />
-                <button
-                  onClick={handleTakeDamage}
-                  className="flex-1 bg-red-950/40 hover:bg-red-900/50 border border-red-500/40 text-red-200 font-bold py-2 rounded-xl text-xs transition"
-                >
-                  [-] Zranění
-                </button>
-                <button
-                  onClick={handleHeal}
-                  className="flex-1 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/40 text-emerald-200 font-bold py-2 rounded-xl text-xs transition"
-                >
-                  [+] Vyléčit
-                </button>
-              </div>
-
-              <div className="flex items-center space-x-2 pt-2 border-t border-white/10 text-xs">
-                <span className="text-zinc-400">Dočasné HP:</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={tempHpInput}
-                  onChange={(e) => setTempHpInput(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-14 bg-white/5 border border-white/10 rounded-lg text-center py-1 text-white focus:outline-none focus:border-white/30"
-                />
-                <button
-                  onClick={handleSetTempHp}
-                  className="bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 px-3 py-1 rounded-lg transition"
-                >
-                  Nastavit Temp HP
-                </button>
-              </div>
-            </div>
-
-            {/* Záchranné hody proti smrti (Death Saves – 5/12) */}
-            <div className="md:col-span-5 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5 font-fantasy tracking-wider">
-                  <Skull className="w-4 h-4 text-zinc-400" />
-                  <span>Záchranné hody (0 HP)</span>
-                </h3>
-                {(character.death_saves.successes > 0 || character.death_saves.failures > 0) && (
-                  <button
-                    onClick={handleResetDeathSaves}
-                    title="Vynulovat záchranné hody"
-                    className="text-[11px] text-zinc-400 hover:text-white flex items-center space-x-1 bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-0.5 rounded-lg transition"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    <span>Reset</span>
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-2.5">
-                <div>
-                  <span className="text-xs text-emerald-400 font-semibold block mb-1">
-                    Úspěchy ({character.death_saves.successes} / 3)
-                  </span>
-                  <div className="flex space-x-2">
-                    {[1, 2, 3].map((num) => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => handleSetDeathSaveCount('success', num)}
-                        className={`w-8 h-8 rounded-xl border flex items-center justify-center text-xs font-bold transition ${
-                          num <= character.death_saves.successes
-                            ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
-                            : 'border-white/10 bg-white/5 text-zinc-500 hover:border-white/30'
-                        }`}
-                      >
-                        ✓
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-xs text-red-400 font-semibold block mb-1">
-                    Selhání ({character.death_saves.failures} / 3)
-                  </span>
-                  <div className="flex space-x-2">
-                    {[1, 2, 3].map((num) => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => handleSetDeathSaveCount('failure', num)}
-                        className={`w-8 h-8 rounded-xl border flex items-center justify-center text-xs font-bold transition ${
-                          num <= character.death_saves.failures
-                            ? 'bg-red-600 border-red-400 text-white shadow-[0_0_10px_rgba(239,68,68,0.4)]'
-                            : 'border-white/10 bg-white/5 text-zinc-500 hover:border-white/30'
-                        }`}
-                      >
-                        ✗
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Stav při 3 úspěších nebo 3 selháních */}
-              {character.death_saves.successes >= 3 ? (
-                <div className="p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-center space-y-1.5">
-                  <p className="text-xs font-bold text-emerald-300">
-                    ✨ Postava je stabilizována (3 úspěchy)!
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleStabilizeAt1Hp}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-1.5 rounded-lg transition"
-                  >
-                    Probrat se (1 HP) a resetovat hody
-                  </button>
-                </div>
-              ) : character.death_saves.failures >= 3 ? (
-                <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/40 text-center space-y-1.5">
-                  <p className="text-xs font-bold text-red-300">
-                    ☠ Postava padla (3 selhání)!
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleStabilizeAt1Hp}
-                    className="w-full bg-red-800/80 hover:bg-red-700 text-white font-bold text-xs py-1.5 rounded-lg transition"
-                  >
-                    Oživit s 1 HP a resetovat
-                  </button>
-                </div>
               ) : (
-                <div className="flex space-x-2 pt-1">
-                  <button
-                    onClick={() => handleDeathSave('success')}
-                    className="flex-1 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-800/50 text-emerald-300 text-xs py-1.5 rounded-lg transition font-bold"
-                  >
-                    + Úspěch
-                  </button>
-                  <button
-                    onClick={() => handleDeathSave('failure')}
-                    className="flex-1 bg-red-950/40 hover:bg-red-900/50 border border-red-800/50 text-red-300 text-xs py-1.5 rounded-lg transition font-bold"
-                  >
-                    + Selhání
-                  </button>
+                <div className="text-center p-6 space-y-3">
+                  <Shield className="w-16 h-16 text-zinc-600 mx-auto" />
+                  <p className="text-xs text-zinc-400">
+                    Zatím nebyl nahrán obrázek postavy.
+                  </p>
                 </div>
               )}
+
+              {/* Tlačítko pro nahrání / změnu velké ilustrace celé postavy */}
+              <label className="absolute inset-x-3 bottom-3 bg-zinc-950/85 hover:bg-zinc-900 border border-white/15 text-zinc-200 hover:text-white rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center justify-center space-x-2 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity shadow-xl backdrop-blur-md">
+                <Upload className="w-4 h-4 text-zinc-300" />
+                <span>{fullPortraitSrc ? 'Změnit obrázek celé postavy' : 'Nahrát obrázek celé postavy'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFullImageUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
+          </div>
+
+          {/* Pravé 4 sloty výbavy (Hlavní zbraň, Druhá ruka / Luk, Amulet / Prsten, Boty) */}
+          <div className="md:col-span-3 space-y-3 order-3">
+            {RIGHT_EQUIP_SLOTS.map((slot) => {
+              const equippedItem = equippedSlots[slot.key];
+              return (
+                <div
+                  key={slot.key}
+                  onClick={() => {
+                    setActiveEquipSlot({ key: slot.key, label: slot.label });
+                    setCustomSlotItemName(equippedItem || '');
+                  }}
+                  className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 group relative ${
+                    equippedItem
+                      ? 'bg-zinc-900/80 border-white/30 shadow-lg hover:border-white/50'
+                      : 'bg-white/[0.03] border-dashed border-white/15 hover:border-white/30 hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-fantasy">
+                      {slot.label}
+                    </span>
+                    {equippedItem && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClearSlot(slot.key);
+                        }}
+                        title="Sundat ze slotu"
+                        className="text-zinc-400 hover:text-red-300 p-0.5 rounded transition"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  {equippedItem ? (
+                    <div className="text-xs font-bold text-white truncate flex items-center space-x-1.5">
+                      <Sword className="w-3.5 h-3.5 text-zinc-300 flex-shrink-0" />
+                      <span className="truncate">{equippedItem}</span>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-zinc-500 group-hover:text-zinc-300 transition">
+                      + {slot.hint}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. ŠEST VLASTNOSTÍ (STATS) A ŽIVOTY & ZÁCHRANNÉ HODY */}
+      <div className="space-y-5">
+        {/* 6 Vlastností (Stats Grid) */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+          {(['str', 'dex', 'con', 'int', 'wis', 'cha'] as const).map((s) => {
+            const val = character.stats[s];
+            const mod = calculateModifier(val);
+            return (
+              <div
+                key={s}
+                className="bg-zinc-900/40 backdrop-blur-md border border-white/10 p-3.5 rounded-2xl text-center space-y-1 shadow-xl"
+              >
+                <span className="text-[11px] font-bold uppercase text-zinc-400 font-fantasy">{s}</span>
+                <div className="text-2xl font-black text-white">{val}</div>
+                <div className="text-xs font-bold text-zinc-200 bg-white/5 rounded-lg py-0.5 border border-white/10">
+                  {formatModifier(mod)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Životy (HP Bar) & Záchranné hody */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          {/* Live HP Box (7/12) */}
+          <div className="md:col-span-7 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5 font-fantasy tracking-wider">
+                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+                <span>Životy (HP Bar)</span>
+              </h3>
+              {character.temp_hp > 0 && (
+                <span className="text-xs bg-blue-950/50 border border-blue-500/40 text-blue-300 px-2.5 py-0.5 rounded-full font-bold">
+                  +{character.temp_hp} Dočasné HP
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-white text-lg">
+                  {character.hp_current} / {character.hp_max} HP
+                </span>
+                <span className="text-zinc-400">{Math.round(hpPercent)}%</span>
+              </div>
+              <div className="w-full bg-white/5 rounded-full h-3.5 overflow-hidden border border-white/10 p-0.5">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    hpPercent > 50
+                      ? 'bg-emerald-500'
+                      : hpPercent > 20
+                      ? 'bg-zinc-300'
+                      : 'bg-red-600'
+                  }`}
+                  style={{ width: `${hpPercent}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 pt-1">
+              <input
+                type="number"
+                min="1"
+                value={hpInput}
+                onChange={(e) => setHpInput(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-16 bg-white/5 border border-white/10 rounded-xl text-center py-2 text-white font-bold text-sm focus:outline-none focus:border-white/30"
+              />
+              <button
+                onClick={handleTakeDamage}
+                className="flex-1 bg-red-950/40 hover:bg-red-900/50 border border-red-500/40 text-red-200 font-bold py-2 rounded-xl text-xs transition"
+              >
+                [-] Zranění
+              </button>
+              <button
+                onClick={handleHeal}
+                className="flex-1 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/40 text-emerald-200 font-bold py-2 rounded-xl text-xs transition"
+              >
+                [+] Vyléčit
+              </button>
+            </div>
+
+            <div className="flex items-center space-x-2 pt-2 border-t border-white/10 text-xs">
+              <span className="text-zinc-400">Dočasné HP:</span>
+              <input
+                type="number"
+                min="0"
+                value={tempHpInput}
+                onChange={(e) => setTempHpInput(Math.max(0, parseInt(e.target.value) || 0))}
+                className="w-14 bg-white/5 border border-white/10 rounded-lg text-center py-1 text-white focus:outline-none focus:border-white/30"
+              />
+              <button
+                onClick={handleSetTempHp}
+                className="bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 px-3 py-1 rounded-lg transition"
+              >
+                Nastavit Temp HP
+              </button>
+            </div>
+          </div>
+
+          {/* Záchranné hody proti smrti (Death Saves – 5/12) */}
+          <div className="md:col-span-5 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5 font-fantasy tracking-wider">
+                <Skull className="w-4 h-4 text-zinc-400" />
+                <span>Záchranné hody (0 HP)</span>
+              </h3>
+              {(character.death_saves.successes > 0 || character.death_saves.failures > 0) && (
+                <button
+                  onClick={handleResetDeathSaves}
+                  title="Vynulovat záchranné hody"
+                  className="text-[11px] text-zinc-400 hover:text-white flex items-center space-x-1 bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-0.5 rounded-lg transition"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Reset</span>
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-2.5">
+              <div>
+                <span className="text-xs text-emerald-400 font-semibold block mb-1">
+                  Úspěchy ({character.death_saves.successes} / 3)
+                </span>
+                <div className="flex space-x-2">
+                  {[1, 2, 3].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => handleSetDeathSaveCount('success', num)}
+                      className={`w-8 h-8 rounded-xl border flex items-center justify-center text-xs font-bold transition ${
+                        num <= character.death_saves.successes
+                          ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
+                          : 'border-white/10 bg-white/5 text-zinc-500 hover:border-white/30'
+                      }`}
+                    >
+                      ✓
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xs text-red-400 font-semibold block mb-1">
+                  Selhání ({character.death_saves.failures} / 3)
+                </span>
+                <div className="flex space-x-2">
+                  {[1, 2, 3].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => handleSetDeathSaveCount('failure', num)}
+                      className={`w-8 h-8 rounded-xl border flex items-center justify-center text-xs font-bold transition ${
+                        num <= character.death_saves.failures
+                          ? 'bg-red-600 border-red-400 text-white shadow-[0_0_10px_rgba(239,68,68,0.4)]'
+                          : 'border-white/10 bg-white/5 text-zinc-500 hover:border-white/30'
+                      }`}
+                    >
+                      ✗
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Stav při 3 úspěších nebo 3 selháních */}
+            {character.death_saves.successes >= 3 ? (
+              <div className="p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-center space-y-1.5">
+                <p className="text-xs font-bold text-emerald-300">
+                  ✨ Postava je stabilizována (3 úspěchy)!
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStabilizeAt1Hp}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-1.5 rounded-lg transition"
+                >
+                  Probrat se (1 HP) a resetovat hody
+                </button>
+              </div>
+            ) : character.death_saves.failures >= 3 ? (
+              <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/40 text-center space-y-1.5">
+                <p className="text-xs font-bold text-red-300">
+                  ☠ Postava padla (3 selhání)!
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStabilizeAt1Hp}
+                  className="w-full bg-red-800/80 hover:bg-red-700 text-white font-bold text-xs py-1.5 rounded-lg transition"
+                >
+                  Oživit s 1 HP a resetovat
+                </button>
+              </div>
+            ) : (
+              <div className="flex space-x-2 pt-1">
+                <button
+                  onClick={() => handleDeathSave('success')}
+                  className="flex-1 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-800/50 text-emerald-300 text-xs py-1.5 rounded-lg transition font-bold"
+                >
+                  + Úspěch
+                </button>
+                <button
+                  onClick={() => handleDeathSave('failure')}
+                  className="flex-1 bg-red-950/40 hover:bg-red-900/50 border border-red-800/50 text-red-300 text-xs py-1.5 rounded-lg transition font-bold"
+                >
+                  + Selhání
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1160,6 +1365,132 @@ export default function CharacterSheetPage() {
                   Uložit obličej
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal pro přiřazení / nasazení vybavení do vybraného slotu okolo portrétu */}
+      {activeEquipSlot && (
+        <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900/95 border border-white/15 rounded-2xl p-6 max-w-md w-full space-y-5 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setActiveEquipSlot(null)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+                Nasazené vybavení hrdiny
+              </div>
+              <h3 className="text-lg font-bold text-white font-fantasy uppercase tracking-wider mt-0.5">
+                {activeEquipSlot.label}
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1">
+                Zadejte název předmětu nebo vyberte položku přímo z vašeho batohu níže.
+              </p>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAssignSlotItem(activeEquipSlot.key, customSlotItemName);
+              }}
+              className="space-y-3"
+            >
+              <label className="text-xs font-semibold text-zinc-300 block">
+                Název nasazeného vybavení
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customSlotItemName}
+                  onChange={(e) => setCustomSlotItemName(e.target.value)}
+                  placeholder={`Např. ${activeEquipSlot.hint}...`}
+                  autoFocus
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-950/90 border border-white/15 text-white text-sm focus:outline-none focus:border-white/40"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 rounded-xl bg-zinc-200 text-zinc-900 hover:bg-white font-bold text-xs transition flex-shrink-0"
+                >
+                  Nasadit
+                </button>
+              </div>
+            </form>
+
+            {/* Rychlý výběr z batohu */}
+            {(personalItems.length > 0 || campaignLoot.length > 0) && (
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block">
+                  Nebo vybrat z batohu hrdiny:
+                </span>
+                <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                  {personalItems.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleAssignSlotItem(activeEquipSlot.key, item.name)}
+                      className="w-full text-left px-3 py-2 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-between transition"
+                    >
+                      <div className="flex items-center space-x-2.5 min-w-0">
+                        {getItemIcon(item.item_type)}
+                        <span className="text-xs font-medium text-zinc-200 truncate">
+                          {item.name}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-zinc-400 flex-shrink-0 ml-2">
+                        Nasadit →
+                      </span>
+                    </button>
+                  ))}
+                  {campaignLoot.map((loot) => (
+                    <button
+                      key={loot.id}
+                      type="button"
+                      onClick={() => handleAssignSlotItem(activeEquipSlot.key, loot.name)}
+                      className="w-full text-left px-3 py-2 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-between transition"
+                    >
+                      <div className="flex items-center space-x-2.5 min-w-0">
+                        {getItemIcon(loot.item_type)}
+                        <span className="text-xs font-medium text-zinc-200 truncate">
+                          {loot.name}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-zinc-400 flex-shrink-0 ml-2">
+                        Nasadit →
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+              {equippedSlots[activeEquipSlot.key] ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleClearSlot(activeEquipSlot.key);
+                    setActiveEquipSlot(null);
+                  }}
+                  className="text-xs text-red-400 hover:text-red-300 underline"
+                >
+                  Sundat vybavení ze slotu
+                </button>
+              ) : (
+                <span />
+              )}
+              <button
+                type="button"
+                onClick={() => setActiveEquipSlot(null)}
+                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-300"
+              >
+                Zavřít
+              </button>
             </div>
           </div>
         </div>
