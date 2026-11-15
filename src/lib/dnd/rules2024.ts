@@ -176,7 +176,7 @@ export const CLASSES_2024: Class2024[] = [
   { name: 'Bard', hitDie: 8, primaryStat: 'CHA', savingThrows: ['DEX', 'CHA'], subclassesAtLevel3: ['College of Dance', 'College of Glamour', 'College of Lore', 'College of Valor'], icon: 'music' },
   { name: 'Cleric', hitDie: 8, primaryStat: 'WIS', savingThrows: ['WIS', 'CHA'], subclassesAtLevel3: ['Life Domain', 'Light Domain', 'Trickery Domain', 'War Domain'], icon: 'shield' },
   { name: 'Druid', hitDie: 8, primaryStat: 'WIS', savingThrows: ['INT', 'WIS'], subclassesAtLevel3: ['Circle of the Land', 'Circle of the Moon', 'Circle of the Sea', 'Circle of Stars'], icon: 'feather' },
-  { name: 'Fighter', hitDie: 10, primaryStat: 'STR / DEX', savingThrows: ['STR', 'CON'], subclassesAtLevel3: ['Battle Master', 'Champion', 'Eldritch Knight', 'Psi Warrior'], icon: 'sword' },
+  { name: 'Fighter', hitDie: 10, primaryStat: 'STR / DEX', savingThrows: ['STR', 'CON'], subclassesAtLevel3: ['Battle Master', 'Champion', 'Eldritch Knight', 'Gunslinger', 'Psi Warrior'], icon: 'sword' },
   { name: 'Monk', hitDie: 8, primaryStat: 'DEX & WIS', savingThrows: ['STR', 'DEX'], subclassesAtLevel3: ['Warrior of Mercy', 'Warrior of Shadow', 'Warrior of the Elements', 'Warrior of the Open Hand'], icon: 'zap' },
   { name: 'Paladin', hitDie: 10, primaryStat: 'STR & CHA', savingThrows: ['WIS', 'CHA'], subclassesAtLevel3: ['Oath of Devotion', 'Oath of Glory', 'Oath of the Ancients', 'Oath of Vengeance'], icon: 'cross' },
   { name: 'Ranger', hitDie: 10, primaryStat: 'DEX & WIS', savingThrows: ['STR', 'DEX'], subclassesAtLevel3: ['Beast Master', 'Fey Wanderer', 'Gloom Stalker', 'Hunter'], icon: 'target' },

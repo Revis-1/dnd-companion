@@ -248,11 +248,26 @@ export default function CharacterSheetPage() {
       .eq('id', character.id);
   };
 
-  // Čtení osobního batohu, měšce a slotů nasazené výbavy z JSONB pole spell_slots
+  // Čtení osobního batohu, měšce, slotů nasazené výbavy a Grit bodů (pro Gunslingera) z JSONB pole spell_slots
   const rawMeta = (character.spell_slots || {}) as Record<string, any>;
   const personalItems: PersonalItem[] = Array.isArray(rawMeta._backpack) ? rawMeta._backpack : [];
   const coins: CoinPurse = rawMeta._coins || { gp: 15, sp: 0, cp: 0 };
   const equippedSlots: EquippedSlotsMap = rawMeta._equipped_slots || {};
+  const maxGritPoints = Math.max(1, calculateModifier(character.stats.wis));
+  const currentGritPoints: number =
+    typeof rawMeta._grit_points === 'number'
+      ? Math.min(maxGritPoints, Math.max(0, rawMeta._grit_points))
+      : maxGritPoints;
+
+  const handleSetGritPoints = async (nextVal: number) => {
+    const clamped = Math.min(maxGritPoints, Math.max(0, nextVal));
+    await updateCharacterFields({
+      spell_slots: {
+        ...rawMeta,
+        _grit_points: clamped,
+      } as any,
+    });
+  };
 
   const saveInventoryMeta = async (
     newItems: PersonalItem[],
@@ -369,6 +384,10 @@ export default function CharacterSheetPage() {
       hp_current: character.hp_max,
       temp_hp: 0,
       death_saves: { successes: 0, failures: 0 },
+      spell_slots: {
+        ...rawMeta,
+        _grit_points: maxGritPoints,
+      } as any,
     });
     setShowDeathSaveModal(false);
   };
@@ -1018,6 +1037,82 @@ export default function CharacterSheetPage() {
             </div>
           </div>
         </div>
+
+        {/* Speciální panel pro Fighter: Gunslinger (Body kuráže / Grit & Trikové výstřely) */}
+        {character.subclass === 'Gunslinger' && (
+          <div className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xs font-bold uppercase text-zinc-200 flex items-center space-x-2 font-fantasy tracking-wider">
+                  <Sparkles className="w-4 h-4 text-zinc-300" />
+                  <span>Gunslinger: Body kuráže (Grit) & Trikové výstřely</span>
+                </h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  Obnovení 1 bodu při kritickém zásahu (20) nebo zabití nepřítele palnou zbraní. Plné obnovení po Krátkém / Dlouhém odpočinku.
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-2 bg-zinc-950/60 border border-white/15 rounded-xl px-3.5 py-2">
+                <span className="text-xs font-bold text-zinc-300 mr-1">
+                  Grit ({currentGritPoints} / {maxGritPoints}):
+                </span>
+                <div className="flex space-x-1.5">
+                  {Array.from({ length: maxGritPoints }, (_, idx) => idx + 1).map((point) => (
+                    <button
+                      key={point}
+                      type="button"
+                      onClick={() =>
+                        handleSetGritPoints(currentGritPoints === point ? point - 1 : point)
+                      }
+                      className={`w-7 h-7 rounded-lg border text-xs font-bold transition ${
+                        point <= currentGritPoints
+                          ? 'bg-zinc-200 text-zinc-900 border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]'
+                          : 'bg-white/5 border-white/15 text-zinc-500 hover:border-white/30'
+                      }`}
+                    >
+                      •
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSetGritPoints(maxGritPoints)}
+                  title="Obnovit všechny Grit body"
+                  className="text-[10px] px-2 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-zinc-300 ml-1 transition"
+                >
+                  Obnovit
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <div className="font-bold text-white">Deadeye Shot (1 Grit)</div>
+                <p className="text-[11px] text-zinc-400">
+                  Získáš Výhodu (Advantage) na příští útok palnou zbraní v tomto tahu.
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <div className="font-bold text-white">Disarming Shot (1 Grit)</div>
+                <p className="text-[11px] text-zinc-400">
+                  Při zásahu musí cíl uspět v STR záchraně (DC {8 + Math.floor((character.level - 1) / 4) + 2 + calculateModifier(character.stats.dex)}), jinak upustí držený předmět.
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <div className="font-bold text-white">Piercing Shot (1 Grit)</div>
+                <p className="text-[11px] text-zinc-400">
+                  Výstřel proletí prvním cílem a zasáhne další nepřátele v přímce za ním (s nevýhodou).
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <div className="font-bold text-white">Winging / Bullying Shot</div>
+                <p className="text-[11px] text-zinc-400">
+                  Sražení cíle k zemi (Prone) při selhání STR záchrany, nebo zastrašení (Intimidation) s výhodou.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* BATOH / INVENTÁŘ HRDINY & MĚŠEC S MINCEMI */}

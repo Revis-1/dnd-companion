@@ -89,6 +89,91 @@ export const ITEMS_COMPENDIUM_2024: CompendiumItem2024[] = [
   },
 
   // ==========================================
+  // PALNÉ ZBRANĚ PRO GUNSLINGERA (D&D 2024 & Matt Mercer)
+  // ==========================================
+  {
+    id: 'pistol-2024',
+    name: 'Křesadlová pistole (Pistol)',
+    englishName: 'Pistol Firearm',
+    category: 'weapon',
+    stats: '1d10 bodné (Piercing) • Dosah 30/90 ft, Nabíjení, Mastery: Vex',
+    cost: '250 GP',
+    slots: ['main_hand', 'off_hand'],
+  },
+  {
+    id: 'musket-2024',
+    name: 'Mušketa (Musket)',
+    englishName: 'Musket Firearm',
+    category: 'weapon',
+    stats: '1d12 bodné (Piercing) • Dosah 40/120 ft, Obouruční, Nabíjení, Mastery: Slow',
+    cost: '500 GP',
+    slots: ['main_hand', 'off_hand'],
+  },
+  {
+    id: 'palm-pistol',
+    name: 'Kapesní pistole (Palm Pistol)',
+    englishName: 'Palm Pistol Firearm',
+    category: 'weapon',
+    stats: '1d8 bodné (Piercing) • Dosah 40/160 ft, Lehká, Reload 1, Misfire 1',
+    cost: '50 GP',
+    slots: ['main_hand', 'off_hand'],
+  },
+  {
+    id: 'pepperbox',
+    name: 'Revolver / Pepperbox (6hlavňová pistole)',
+    englishName: 'Pepperbox Revolver Firearm',
+    category: 'weapon',
+    stats: '1d10 bodné (Piercing) • Dosah 80/320 ft, Reload 6 ran, Misfire 2',
+    cost: '250 GP',
+    slots: ['main_hand', 'off_hand'],
+  },
+  {
+    id: 'blunderbuss',
+    name: 'Bambitka / Brokovnice (Blunderbuss)',
+    englishName: 'Blunderbuss Shotgun Firearm',
+    category: 'weapon',
+    stats: '2d8 bodné (Piercing) • Dosah 15/60 ft, Reload 1, Misfire 2',
+    cost: '300 GP',
+    slots: ['main_hand', 'off_hand'],
+  },
+  {
+    id: 'bad-news',
+    name: 'Odstřelovací puška „Bad News“ (Sniper Rifle)',
+    englishName: 'Bad News Sniper Rifle Firearm',
+    category: 'weapon',
+    stats: '2d12 bodné (Piercing) • Dosah 200/800 ft, Obouruční, Reload 1, Misfire 3',
+    cost: 'Vzácné (Výroba)',
+    slots: ['main_hand', 'off_hand'],
+  },
+  {
+    id: 'hand-mortar',
+    name: 'Ruční moždíř (Hand Mortar)',
+    englishName: 'Hand Mortar Explosive Firearm',
+    category: 'weapon',
+    stats: '2d8 ohnivé (Fire) • Dosah 30/60 ft, Výbušné, Reload 1, Misfire 3',
+    cost: 'Vzácné (Výroba)',
+    slots: ['main_hand', 'off_hand'],
+  },
+  {
+    id: 'pistol-plus-1',
+    name: 'Magická pistole +1 (Pistol +1)',
+    englishName: 'Pistol +1 Firearm',
+    category: 'weapon',
+    stats: '1d10+1 bodné • +1 k útoku a zranění, Dosah 30/90 ft, Mastery: Vex',
+    cost: 'Vzácné',
+    slots: ['main_hand', 'off_hand'],
+  },
+  {
+    id: 'pepperbox-plus-1',
+    name: 'Magický revolver / Pepperbox +1',
+    englishName: 'Pepperbox +1 Revolver Firearm',
+    category: 'weapon',
+    stats: '1d10+1 bodné • +1 k útoku a zranění, Dosah 80/320 ft, Reload 6 ran',
+    cost: 'Vzácné',
+    slots: ['main_hand', 'off_hand'],
+  },
+
+  // ==========================================
   // ZBRANĚ NA BLÍZKO (Meče, dýky, sekery, hole)
   // ==========================================
   {
@@ -629,6 +714,41 @@ export const ITEMS_COMPENDIUM_2024: CompendiumItem2024[] = [
   // ==========================================
   // DOBRODRUŽNÁ VÝBAVA, MUNICE A NÁSTROJE (Gear)
   // ==========================================
+  {
+    id: 'firearm-bullets-10',
+    name: 'Olověné kulky a prach (Firearm Bullets 10 ks)',
+    englishName: 'Firearm Bullets Ammunition (10)',
+    category: 'gear',
+    stats: 'Munice do pistole, muškety, revolveru a bambitky (10 výstřelů)',
+    cost: '3 GP',
+    slots: ['off_hand'],
+  },
+  {
+    id: 'bad-news-bullets-5',
+    name: 'Těžké průbojné střely pro Bad News (5 ks)',
+    englishName: 'Bad News Rifle Bullets (5)',
+    category: 'gear',
+    stats: 'Speciální munice pro odstřelovací pušku Bad News',
+    cost: '10 GP',
+    slots: ['off_hand'],
+  },
+  {
+    id: 'gunpowder-horn',
+    name: 'Roh se střelným prachem (Gunpowder Horn)',
+    englishName: 'Gunpowder Horn',
+    category: 'gear',
+    stats: 'Zásoba černého střelného prachu pro výrobu munice či menší explozi (3d6 Fire)',
+    cost: '35 GP',
+    slots: ['off_hand', 'accessory'],
+  },
+  {
+    id: 'tinkers-tools',
+    name: 'Kutilské a puškařské náčiní (Tinker’s Tools)',
+    englishName: 'Tinkers Tools Gunsmith',
+    category: 'gear',
+    stats: 'Náčiní pro Gunslingera: oprava zaseknutých zbraní, výroba palných zbraní a střeliva',
+    cost: '50 GP',
+  },
   {
     id: 'arrows-20',
     name: 'Šípy do luku – toulec (Arrows 20 ks)',
